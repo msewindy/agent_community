@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_platform.wiki",
+  "version": "1.0.0",
+  "definitions": {
+    "WikiIngestRequest": {
+      "additionalProperties": false,
+      "description": "Ingest raw material into the wiki store (D2+ 实现).",
+      "properties": {
+        "source_path": {
+          "description": "Path under raw/ or absolute path within store_root",
+          "minLength": 1,
+          "title": "Source Path",
+          "type": "string"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Topic"
+        },
+        "trace_id": {
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "source_event_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Event Id"
+        },
+        "device_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device Id"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "source_path"
+      ],
+      "title": "WikiIngestRequest",
+      "type": "object"
+    },
+    "WikiQueryRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 8,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "WikiQueryRequest",
+      "type": "object"
+    },
+    "WikiPageRef": {
+      "$defs": {
+        "WikiPageKind": {
+          "enum": [
+            "entity",
+            "concept",
+            "synthesis",
+            "comparison",
+            "archived_query"
+          ],
+          "title": "WikiPageKind",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "title": "Title",
+          "type": "string"
+        },
+        "summary": {
+          "default": "",
+          "title": "Summary",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WikiPageKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "score": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "WikiPageRef",
+      "type": "object"
+    },
+    "WikiQueryResult": {
+      "$defs": {
+        "WikiPageKind": {
+          "enum": [
+            "entity",
+            "concept",
+            "synthesis",
+            "comparison",
+            "archived_query"
+          ],
+          "title": "WikiPageKind",
+          "type": "string"
+        },
+        "WikiPageRef": {
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "title": "Path",
+              "type": "string"
+            },
+            "title": {
+              "default": "",
+              "title": "Title",
+              "type": "string"
+            },
+            "summary": {
+              "default": "",
+              "title": "Summary",
+              "type": "string"
+            },
+            "kind": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/WikiPageKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "score": {
+              "default": 1.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Score",
+              "type": "number"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "title": "WikiPageRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "hits": {
+          "items": {
+            "$ref": "#/$defs/WikiPageRef"
+          },
+          "title": "Hits",
+          "type": "array"
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Answer"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw"
+        }
+      },
+      "title": "WikiQueryResult",
+      "type": "object"
+    },
+    "WikiLintStubResult": {
+      "additionalProperties": false,
+      "description": "v1 仅占位；自动化 lint 属 v2。",
+      "properties": {
+        "ok": {
+          "default": true,
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "message": {
+          "default": "lint_stub: not implemented in M3 v1",
+          "title": "Message",
+          "type": "string"
+        },
+        "issues": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Issues",
+          "type": "array"
+        }
+      },
+      "title": "WikiLintStubResult",
+      "type": "object"
+    },
+    "WikiStoreLayout": {
+      "additionalProperties": false,
+      "description": "Resolved paths for a wiki store (M3 D1).",
+      "properties": {
+        "root": {
+          "type": "string"
+        },
+        "schema_path": {
+          "type": "string"
+        },
+        "index_path": {
+          "type": "string"
+        },
+        "log_path": {
+          "type": "string"
+        },
+        "raw_dir": {
+          "type": "string"
+        },
+        "wiki_dir": {
+          "type": "string"
+        },
+        "entities_dir": {
+          "type": "string"
+        },
+        "concepts_dir": {
+          "type": "string"
+        },
+        "comparisons_dir": {
+          "type": "string"
+        },
+        "queries_dir": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "root",
+        "schema_path",
+        "index_path",
+        "log_path",
+        "raw_dir",
+        "wiki_dir",
+        "entities_dir",
+        "concepts_dir",
+        "comparisons_dir",
+        "queries_dir"
+      ],
+      "title": "WikiStoreLayout",
+      "type": "object"
+    }
+  }
+}

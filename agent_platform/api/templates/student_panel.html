@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>家长学情 · 学生 Jarvis</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f7f9; }
+    body { max-width: 920px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.35rem; margin-bottom: 0.25rem; }
+    .meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin-bottom: 1rem; }
+    label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 0.25rem; }
+    input, select, button { padding: 0.45rem 0.6rem; font-size: 0.95rem; }
+    button { cursor: pointer; background: #2563eb; color: #fff; border: none; border-radius: 6px; }
+    button.secondary { background: #64748b; }
+    button.small { font-size: 0.8rem; padding: 0.3rem 0.5rem; }
+    button.warn { background: #b45309; }
+    .card { background: #fff; border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .card h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #334155; }
+    .card .sub { font-size: 0.85rem; color: #64748b; margin: 0 0 0.75rem; }
+    .summary { font-size: 1.05rem; line-height: 1.5; }
+    ul { margin: 0.25rem 0 0; padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    .stats { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .stat { background: #eef2ff; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.9rem; }
+    .msg { margin: 0.75rem 0; padding: 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+    .msg.ok { background: #dcfce7; }
+    .msg.err { background: #fee2e2; }
+    .dim { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; font-size: 0.9rem; margin-top: 0.5rem; }
+    .dim span.bar { background: #e2e8f0; border-radius: 4px; height: 8px; grid-column: 1 / -1; overflow: hidden; }
+    .dim span.fill { display: block; height: 100%; background: #6366f1; border-radius: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.45rem 0.35rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    th { color: #475569; font-weight: 600; }
+    .badge { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 0.75rem; }
+    .badge.weak { background: #fee2e2; color: #991b1b; }
+    .badge.ok { background: #dcfce7; color: #166534; }
+    .badge.pending { background: #fef3c7; color: #92400e; }
+    .pending-item { border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; background: #fffbeb; }
+    .pending-item .stem { font-weight: 600; margin-bottom: 0.35rem; }
+    .pending-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .tabs button { background: #e2e8f0; color: #334155; }
+    .tabs button.active { background: #2563eb; color: #fff; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>家长学情</h1>
+  <p class="meta">P0 试点 · 二年级 · 数据目录 <code>{{DATA_ROOT}}</code></p>
+
+  <div class="toolbar">
+    <label>student_id
+      <input id="studentId" placeholder="g2-stu-01" />
+    </label>
+    <label>周期（天）
+      <input id="days" type="number" value="7" min="1" max="90" />
+    </label>
+  </div>
+
+  <div class="tabs">
+    <button type="button" id="tabProfile" class="active">学情总览</button>
+    <button type="button" id="tabReport" class="secondary">周报</button>
+  </div>
+
+  <div id="profileToolbar" class="toolbar">
+    <button type="button" id="btnProfile">刷新学情</button>
+  </div>
+  <div id="reportToolbar" class="toolbar hidden">
+    <button type="button" id="btnLoad">查看报告</button>
+    <button type="button" id="btnSave" class="secondary">生成并保存</button>
+  </div>
+
+  <div id="message"></div>
+  <div id="profile"></div>
+  <div id="report" class="hidden"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let kpChoices = [];
+
+    function showMsg(text, ok) {
+      const el = $("message");
+      el.className = "msg " + (ok ? "ok" : "err");
+      el.textContent = text;
+    }
+
+    function statusBadge(status) {
+      const map = { weak: "薄弱", active: "在学", mastered: "已掌握", improving: "改善中" };
+      const cls = status === "mastered" ? "ok" : "weak";
+      return `<span class="badge ${cls}">${map[status] || status}</span>`;
+    }
+
+    function renderGaps(gaps) {
+      if (!gaps.length) {
+        return `<div class="card"><h2>知识点掌握</h2><p class="sub">暂无学情记录。孩子做题或拍照复盘后会出现在这里。</p></div>`;
+      }
+      const rows = gaps.map(g => `<tr>
+        <td>${g.title || g.knowledge_point_id}</td>
+        <td>${statusBadge(g.status)}</td>
+        <td>错 ${g.stats.total_wrong} / 对 ${g.stats.total_correct}</td>
+        <td>${(g.error_breakdown && Object.keys(g.error_breakdown).length)
+          ? Object.entries(g.error_breakdown).map(([k,v]) => k + "×" + v).join("、")
+          : "—"}</td>
+      </tr>`).join("");
+      return `<div class="card">
+        <h2>知识点掌握</h2>
+        <p class="sub">按知识点汇总的掌握情况（主轴=知识点，错因为可选明细）。</p>
+        <table>
+          <thead><tr><th>知识点</th><th>状态</th><th>对错</th><th>错因分布</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    }
+
+    function renderPending(items) {
+      if (!items.length) {
+        return `<div class="card"><h2>尚未归类的题</h2>
+          <p class="sub">拍照后若 Jarvis 未能自动挂上知识点，会出现在这里——仍是学情的一部分，不是单独收件箱。</p>
+          <p>当前没有待处理项。</p></div>`;
+      }
+      const blocks = items.map(it => {
+        const tierLabel = { inbox: "待归类", confirm: "待确认", auto: "自动" }[it.tier] || it.tier;
+        const opts = kpChoices.map(k =>
+          `<option value="${k.kp_id}">${k.title}（${k.subject}）</option>`
+        ).join("");
+        return `<div class="pending-item" data-id="${it.entry_id}">
+          <div class="stem">${it.stem}</div>
+          <div>学生答案：${it.student_answer || "—"} · 批改：${it.is_correct === null ? "未知" : (it.is_correct ? "对" : "错")}
+            · <span class="badge pending">${tierLabel}</span>
+            ${it.matched_kp_id ? " · 建议：" + (it.kp_title || it.matched_kp_id) + " (" + Math.round((it.confidence||0)*100) + "%)" : ""}
+          </div>
+          <div class="pending-actions">
+            <select class="kpSel">${opts}</select>
+            <label><input type="radio" name="corr_${it.entry_id}" value="wrong" checked> 错</label>
+            <label><input type="radio" name="corr_${it.entry_id}" value="right"> 对</label>
+            <button type="button" class="small btnResolve">挂知识点入学情</button>
+            <button type="button" class="small warn btnDrop">忽略</button>
+          </div>
+        </div>`;
+      }).join("");
+      return `<div class="card"><h2>尚未归类的题（${items.length}）</h2>
+        <p class="sub">Jarvis 自动归类未完成的题。家长可在此挂上知识点并入学情，或忽略。</p>
+        ${blocks}</div>`;
+    }
+
+    function bindPendingActions(sid) {
+      document.querySelectorAll(".btnResolve").forEach(btn => {
+        btn.onclick = async () => {
+          const box = btn.closest(".pending-item");
+          const entryId = box.dataset.id;
+          const kp = box.querySelector(".kpSel").value;
+          const isCorrect = box.querySelector(`input[name="corr_${entryId}"]:checked`).value === "right";
+          const res = await fetch(`/api/students/${encodeURIComponent(sid)}/learning-profile/pending/${entryId}/resolve`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ knowledge_point_id: kp, is_correct: isCorrect }),
+          });
+          if (!res.ok) { showMsg("归类失败", false); return; }
+          showMsg("已挂知识点并入学情", true);
+          loadProfile();
+        };
+      });
+      document.querySelectorAll(".btnDrop").forEach(btn => {
+        btn.onclick = async () => {
+          const box = btn.closest(".pending-item");
+          const entryId = box.dataset.id;
+          const res = await fetch(`/api/students/${encodeURIComponent(sid)}/learning-profile/pending/${entryId}/drop`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          });
+          if (!res.ok) { showMsg("操作失败", false); return; }
+          showMsg("已忽略该题", true);
+          loadProfile();
+        };
+      });
+    }
+
+    async function loadProfile() {
+      const sid = $("studentId").value.trim();
+      if (!sid) { showMsg("请填写 student_id", false); return; }
+      const res = await fetch(`/api/students/${encodeURIComponent(sid)}/learning-profile`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("加载学情失败: " + (err.detail || res.status), false);
+        return;
+      }
+      const data = await res.json();
+      kpChoices = data.kp_choices || [];
+      $("profile").innerHTML = renderGaps(data.gaps || []) + renderPending(data.pending_items || []);
+      bindPendingActions(sid);
+      showMsg(`学情已加载：${(data.gaps||[]).length} 个知识点 · ${(data.pending_items||[]).length} 道待归类`, true);
+    }
+
+    function renderList(title, items) {
+      if (!items || !items.length) return "";
+      return `<div class="card"><h2>${title}</h2><ul>${items.map(i => `<li>${i}</li>`).join("")}</ul></div>`;
+    }
+
+    function renderDims(scores) {
+      if (!scores || !scores.length) return "";
+      const rows = scores.map(d => {
+        const pct = Math.round((d.score || 0) * 100);
+        return `<div class="dim">
+          <strong>${d.title}</strong>
+          <span>信号 ${d.signal_count}</span>
+          <span>${pct}%</span>
+          <span class="bar"><span class="fill" style="width:${pct}%"></span></span>
+        </div>`;
+      }).join("");
+      return `<div class="card"><h2>维度诊断</h2>${rows}</div>`;
+    }
+
+    function renderReport(data) {
+      const rate = data.correct_rate != null ? Math.round(data.correct_rate * 100) + "%" : "—";
+      $("report").innerHTML = `
+        <div class="card">
+          <h2>${data.grade} · ${data.subject} · ${data.unit_title}</h2>
+          <p class="summary">${data.summary}</p>
+          <div class="stats">
+            <div class="stat">练习 ${data.attempts_total} 次</div>
+            <div class="stat">正确率 ${rate}</div>
+            <div class="stat">周期 ${data.period_days} 天</div>
+          </div>
+        </div>
+        ${renderList("知识掌握", data.knowledge_highlights)}
+        ${renderDims(data.dimension_scores)}
+        ${renderList("行为习惯", data.behavior_notes)}
+        ${renderList("下周建议", data.next_steps)}
+      `;
+    }
+
+    async function loadReport(save) {
+      const sid = $("studentId").value.trim();
+      const days = $("days").value || "7";
+      if (!sid) { showMsg("请填写 student_id", false); return; }
+      const url = save
+        ? `/api/students/${encodeURIComponent(sid)}/parent-report/generate?days=${days}`
+        : `/api/students/${encodeURIComponent(sid)}/parent-report?days=${days}`;
+      const opts = save ? { method: "POST" } : {};
+      const res = await fetch(url, opts);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("加载失败: " + (err.detail || res.status), false);
+        return;
+      }
+      const data = save ? (await res.json()).report : await res.json();
+      renderReport(data);
+      showMsg(save ? "报告已生成并保存" : "报告已加载", true);
+    }
+
+    function showTab(which) {
+      const isProfile = which === "profile";
+      $("tabProfile").classList.toggle("active", isProfile);
+      $("tabReport").classList.toggle("active", !isProfile);
+      $("profileToolbar").classList.toggle("hidden", !isProfile);
+      $("reportToolbar").classList.toggle("hidden", isProfile);
+      $("profile").classList.toggle("hidden", !isProfile);
+      $("report").classList.toggle("hidden", isProfile);
+    }
+
+    $("tabProfile").addEventListener("click", () => showTab("profile"));
+    $("tabReport").addEventListener("click", () => showTab("report"));
+    $("btnProfile").addEventListener("click", loadProfile);
+    $("btnLoad").addEventListener("click", () => loadReport(false));
+    $("btnSave").addEventListener("click", () => loadReport(true));
+  </script>
+</body>
+</html>

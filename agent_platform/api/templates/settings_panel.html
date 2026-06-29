@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>设定面板 · 它的设定</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f7f9; }
+    body { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.35rem; margin-bottom: 0.25rem; }
+    .meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; }
+    .card { background: #fff; border-radius: 8px; padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; margin-bottom: 0.75rem; }
+    select, textarea, input { width: 100%; padding: 0.5rem; font-size: 0.95rem; box-sizing: border-box; margin-top: 0.25rem; }
+    textarea { min-height: 120px; font-family: inherit; }
+    button { cursor: pointer; background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 0.5rem 1rem; margin-right: 0.5rem; }
+    button.secondary { background: #64748b; }
+    pre { background: #f1f5f9; padding: 0.75rem; border-radius: 6px; white-space: pre-wrap; font-size: 0.85rem; }
+    .msg { margin: 0.75rem 0; padding: 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+    .msg.ok { background: #dcfce7; }
+    .msg.err { background: #fee2e2; }
+  </style>
+</head>
+<body>
+  <h1>它的设定（行为一致性档）</h1>
+  <p class="meta">弱人格、强一致 · 注入 system prompt · 用户可见可改</p>
+
+  <div id="message" class="msg" style="display:none"></div>
+
+  <div class="card">
+    <label>语气 tone
+      <select id="tone">
+        <option value="direct">direct · 简短直接</option>
+        <option value="neutral">neutral · 中性客观</option>
+        <option value="warm">warm · 温和克制</option>
+      </select>
+    </label>
+    <label>篇幅 verbosity
+      <select id="verbosity">
+        <option value="short">short · 尽量简短</option>
+        <option value="medium">medium · 适中</option>
+        <option value="long">long · 可详细</option>
+      </select>
+    </label>
+    <label>语言
+      <input id="language" value="zh-CN" />
+    </label>
+    <label>行为规则（每行一条）
+      <textarea id="rules"></textarea>
+    </label>
+    <label>备注
+      <textarea id="customNotes" rows="3"></textarea>
+    </label>
+    <button type="button" id="btnSave">保存</button>
+    <button type="button" id="btnReset" class="secondary">恢复默认</button>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1rem;margin-top:0">System 注入预览</h2>
+    <pre id="promptPreview"></pre>
+  </div>
+
+  <script>
+    const msgEl = document.getElementById("message");
+
+    function showMsg(text, ok) {
+      msgEl.style.display = "block";
+      msgEl.className = "msg " + (ok ? "ok" : "err");
+      msgEl.textContent = text;
+    }
+
+    function fillForm(p) {
+      document.getElementById("tone").value = p.tone;
+      document.getElementById("verbosity").value = p.verbosity;
+      document.getElementById("language").value = p.language || "zh-CN";
+      document.getElementById("rules").value = (p.rules || []).join("\n");
+      document.getElementById("customNotes").value = p.custom_notes || "";
+      document.getElementById("promptPreview").textContent = p.system_prompt || "";
+    }
+
+    async function loadProfile() {
+      const res = await fetch("/api/behavior/profile");
+      if (!res.ok) { showMsg("加载失败: " + res.status, false); return; }
+      fillForm(await res.json());
+      showMsg("已加载行为档", true);
+    }
+
+    async function saveProfile() {
+      const body = {
+        tone: document.getElementById("tone").value,
+        verbosity: document.getElementById("verbosity").value,
+        language: document.getElementById("language").value.trim(),
+        rules: document.getElementById("rules").value.split("\n").map(s => s.trim()).filter(Boolean),
+        custom_notes: document.getElementById("customNotes").value.trim()
+      };
+      const res = await fetch("/api/behavior/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) { showMsg("保存失败: " + res.status, false); return; }
+      fillForm(await res.json());
+      showMsg("已保存", true);
+    }
+
+    async function resetProfile() {
+      const res = await fetch("/api/behavior/profile/reset", { method: "POST" });
+      if (!res.ok) { showMsg("重置失败", false); return; }
+      fillForm(await res.json());
+      showMsg("已恢复默认", true);
+    }
+
+    document.getElementById("btnSave").onclick = saveProfile;
+    document.getElementById("btnReset").onclick = resetProfile;
+    loadProfile();
+  </script>
+</body>
+</html>

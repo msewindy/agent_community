@@ -1,0 +1,37 @@
+# M2 记忆层配置 — 切换 backend 时门面代码不变
+
+backend: mock   # mock | memverse
+
+# mock 落盘：跨 hermes chat 重启仍保留；面板与 agent_memory_* 共用此文件
+mock:
+  persist_path: skills_data/memory_store.json
+
+device:
+  default_id: reachy-desktop-01
+
+memverse:
+  base_url: http://127.0.0.1:8000
+  timeout_s: 180
+  # MemVerse /insert|/query 仅接受 query 表单；元数据经 envelope 编码（见 adapters/memverse.py）
+
+gate:
+  enabled: false   # CLI: --gate 或 smoke-gate；生产验收前可改为 true
+  dedup: true
+  conflict_check: true
+  min_confidence: 0.0
+  sensitive_keywords:
+    - password
+    - api_key
+    - secret_key
+    - 密码
+    - 密钥
+
+audit:
+  enabled: false   # CLI: --audit 或 smoke-audit
+  db_path: /tmp/agent_platform_audit.db
+
+panel:
+  host: 127.0.0.1
+  port: 8765
+  force_mock_backend: true   # US-7 列表/删除；MemVerse 无 list API
+  enable_audit: true         # 面板删除写入审计链

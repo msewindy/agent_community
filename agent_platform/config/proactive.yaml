@@ -1,0 +1,38 @@
+# M5 主动行为 — L0/L1 + 静默时段（US-5）
+
+enabled: true
+level: L0   # L0 | L1
+
+quiet_hours:
+  enabled: true
+  start: "22:00"
+  end: "07:00"
+  timezone: Asia/Shanghai
+
+triggers:
+  work_break:
+    enabled: true
+    work_minutes_threshold: 120
+    message: "已经 2 小时了，要不要休息一下？"
+
+session:
+  snooze_rest_of_session: true
+  dismiss_phrases:
+    - 别打扰
+    - 不要打扰
+    - 在做正事
+    - 别提醒
+    - do not disturb
+    - don't disturb
+
+memory:
+  write_dismiss_preference: true
+  dismiss_category: preference
+  dismiss_template: "用户在此类专注/工作时段不希望主动提醒（US-5 反馈）"
+  # 写入 memory 时附带用户原话；dedup 按 subject_key + 关键词检索
+  dedup_enabled: true
+  dedup_search_query: "不希望主动提醒 别打扰"
+
+store:
+  root: proactive_data
+  auto_init: true

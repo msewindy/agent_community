@@ -1,0 +1,4 @@
+# C7 evolution Phase 1
+PyYAML>=6.0
+pydantic>=2.5
+pytest>=8.0

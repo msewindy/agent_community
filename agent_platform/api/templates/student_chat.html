@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>小贾同学</title>
+  <style>
+    :root {
+      --bg: #fef6ec;
+      --me: #ffd98a;
+      --jarvis: #ffffff;
+      --accent: #ff8a3d;
+      --accent-dark: #e9651b;
+      --text: #4a3b2a;
+      --muted: #b7a88f;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+    }
+    header {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #ffb35c, var(--accent));
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(233, 101, 27, 0.25);
+    }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex: 0 0 auto;
+    }
+    header .title { font-size: 22px; font-weight: 700; }
+    header .sub { font-size: 13px; opacity: 0.9; }
+    .hdr-btn {
+      margin-left: auto; width: 42px; height: 42px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,0.25); color: #fff;
+      font-size: 22px; cursor: pointer; flex: 0 0 auto;
+    }
+    .hdr-btn.off { opacity: 0.45; }
+    .icon-btn.recording { background: var(--accent); color: #fff; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+    #chat {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 18px 14px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+    .row.me { flex-direction: row-reverse; }
+    .bubble {
+      max-width: 78%;
+      padding: 12px 16px;
+      border-radius: 20px;
+      font-size: 19px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .me .bubble { background: var(--me); border-bottom-right-radius: 6px; }
+    .jarvis .bubble { background: var(--jarvis); border-bottom-left-radius: 6px; }
+    .pic { width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .jarvis .pic { background: #fff; }
+    .me .pic { background: var(--accent); color: #fff; }
+    .typing .bubble { color: var(--muted); font-style: italic; }
+    .play-btn {
+      align-self: flex-end; border: none; background: #fff3e3;
+      color: var(--accent-dark); width: 32px; height: 32px; border-radius: 50%;
+      font-size: 16px; cursor: pointer; flex: 0 0 auto; padding: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .play-btn:active { transform: scale(0.92); }
+
+    footer {
+      flex: 0 0 auto;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: #fff;
+      border-top: 1px solid #f0e6d6;
+    }
+    .input-row { display: flex; align-items: flex-end; gap: 8px; }
+    .icon-btn {
+      width: 50px; height: 50px; border-radius: 50%; border: none;
+      background: #fff3e3; color: var(--accent-dark); font-size: 24px;
+      flex: 0 0 auto; cursor: pointer;
+    }
+    .icon-btn:active { transform: scale(0.94); }
+    textarea {
+      flex: 1 1 auto;
+      resize: none;
+      border: 2px solid #ffe0bd;
+      border-radius: 24px;
+      padding: 12px 16px;
+      font-size: 19px;
+      font-family: inherit;
+      max-height: 120px;
+      outline: none;
+      color: var(--text);
+    }
+    textarea:focus { border-color: var(--accent); }
+    #send {
+      width: 54px; height: 54px; border-radius: 50%; border: none;
+      background: var(--accent); color: #fff; font-size: 26px; flex: 0 0 auto;
+      cursor: pointer; box-shadow: 0 2px 8px rgba(233,101,27,0.4);
+    }
+    #send:disabled { background: var(--muted); box-shadow: none; }
+    #send.stopping { background: #e74c3c; box-shadow: 0 2px 8px rgba(231,76,60,0.4); }
+    #send:active:not(:disabled) { transform: scale(0.94); }
+    .hint { text-align: center; font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+    #vision-card {
+      display: none;
+      margin: 0 12px 8px;
+      padding: 12px 14px;
+      background: #fff8ef;
+      border: 2px solid #ffd4a8;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(255,138,61,0.12);
+    }
+    #vision-card.show { display: block; }
+    #vision-card .v-title { font-size: 17px; font-weight: 700; color: var(--accent-dark); }
+    #vision-card .v-sub { font-size: 14px; color: #8a7355; margin: 4px 0 10px; line-height: 1.4; }
+    #vision-card .v-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    #vision-card .v-btn {
+      border: none; border-radius: 999px; padding: 8px 14px;
+      font-size: 15px; background: #fff; color: var(--accent-dark);
+      border: 1px solid #ffc896; cursor: pointer;
+    }
+    #vision-card .v-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #vision-card .v-dismiss {
+      float: right; border: none; background: transparent; color: var(--muted);
+      font-size: 18px; cursor: pointer; padding: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="avatar">🦊</div>
+    <div>
+      <div class="title">小贾同学</div>
+      <div class="sub">我陪你一起学习呀～</div>
+    </div>
+    <button id="speaker" class="hdr-btn" title="朗读开关">🔊</button>
+  </header>
+
+  <main id="chat">
+    <div class="row jarvis">
+      <div class="pic">🦊</div>
+      <div class="bubble">嗨！我是小贾。今天想聊点什么，或者有不会的题想一起看看吗？😊</div>
+    </div>
+  </main>
+
+  <footer>
+    <div id="vision-card">
+      <button type="button" class="v-dismiss" id="visionDismiss" title="取消">×</button>
+      <div class="v-title" id="visionTitle"></div>
+      <div class="v-sub" id="visionSub"></div>
+      <div class="v-actions" id="visionActions"></div>
+    </div>
+    <div class="input-row">
+      <button class="icon-btn" id="camera" title="拍照（敬请期待）">📷</button>
+      <button class="icon-btn" id="mic" title="说话（敬请期待）">🎤</button>
+      <textarea id="msg" rows="1" placeholder="跟小贾说点什么…"></textarea>
+      <button id="send" title="发送">➤</button>
+    </div>
+    <p class="hint" id="hint">输入后点 ➤ 发送</p>
+  </footer>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const msg = document.getElementById('msg');
+    const send = document.getElementById('send');
+    const hint = document.getElementById('hint');
+    let sessionId = null;
+    let busy = false;
+    let pendingVision = null;
+    let typingEl = null;
+    let chatAbortController = null;
+    let chatRequestId = 0;
+
+    let autoSpeak = true;       // 🔊 主开关：是否在「语音提问」后自动朗读
+    let lastInputWasVoice = false;  // 上一条输入是否来自 🎤
+    let audioEl = null;
+    let playingBtn = null;
+
+    function stopAudio() {
+      if (audioEl) { audioEl.pause(); audioEl = null; }
+      if (playingBtn) { playingBtn.textContent = '🔈'; playingBtn = null; }
+    }
+
+    function addBubble(text, who) {
+      const row = document.createElement('div');
+      row.className = 'row ' + who;
+      const pic = document.createElement('div');
+      pic.className = 'pic';
+      pic.textContent = who === 'me' ? '🧒' : '🦊';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+      row.appendChild(pic);
+      row.appendChild(bubble);
+      chat.appendChild(row);
+      chat.scrollTop = chat.scrollHeight;
+      return row;
+    }
+
+    // 小贾气泡：文字立即显示，并附一个按需朗读的 🔈 按钮
+    function addJarvisReply(text) {
+      const row = addBubble(text, 'jarvis');
+      if (!text || text === '（小贾没说话）') return row;
+      const btn = document.createElement('button');
+      btn.className = 'play-btn';
+      btn.textContent = '🔈';
+      btn.title = '朗读';
+      btn.addEventListener('click', () => playText(text, btn));
+      row.appendChild(btn);
+      return { row, btn };
+    }
+
+    async function playText(text, btn) {
+      if (!text) return;
+      // 再次点击正在播放的按钮 = 停止
+      if (playingBtn === btn && audioEl) { stopAudio(); return; }
+      stopAudio();
+      try {
+        btn.textContent = '⏳';
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, lang: 'zh' }),
+        });
+        if (!res.ok) { btn.textContent = '🔈'; return; }
+        const blob = await res.blob();
+        audioEl = new Audio(URL.createObjectURL(blob));
+        playingBtn = btn;
+        btn.textContent = '⏸';
+        audioEl.onended = () => { if (playingBtn === btn) { btn.textContent = '🔈'; playingBtn = null; audioEl = null; } };
+        audioEl.play().catch(() => { btn.textContent = '🔈'; });
+      } catch (e) { btn.textContent = '🔈'; }
+    }
+
+    const speakerBtn = document.getElementById('speaker');
+    speakerBtn.addEventListener('click', () => {
+      autoSpeak = !autoSpeak;
+      speakerBtn.textContent = autoSpeak ? '🔊' : '🔇';
+      speakerBtn.classList.toggle('off', !autoSpeak);
+      speakerBtn.title = autoSpeak ? '语音提问后自动朗读：开' : '语音提问后自动朗读：关';
+      if (!autoSpeak) stopAudio();
+    });
+
+    function autoGrow() {
+      msg.style.height = 'auto';
+      msg.style.height = Math.min(msg.scrollHeight, 120) + 'px';
+    }
+    msg.addEventListener('input', autoGrow);
+
+    function setSendMode(mode) {
+      if (mode === 'stop') {
+        send.textContent = '⏹';
+        send.title = '停止小贾的回答';
+        send.classList.add('stopping');
+        send.disabled = false;
+      } else {
+        send.textContent = '➤';
+        send.title = '发送';
+        send.classList.remove('stopping');
+        send.disabled = false;
+      }
+    }
+
+    async function abortChat() {
+      if (!busy && !chatAbortController) return;
+      chatRequestId += 1;
+      const ctrl = chatAbortController;
+      chatAbortController = null;
+      if (ctrl) ctrl.abort();
+      fetch('/api/chat/abort', { method: 'POST' }).catch(() => {});
+      if (typingEl) { typingEl.remove(); typingEl = null; }
+      busy = false;
+      setSendMode('send');
+      hint.textContent = '已停止 · 可以继续问啦';
+    }
+
+    async function sendMessage(overrideText) {
+      const text = (overrideText != null ? overrideText : msg.value).trim();
+      if (!text) return;
+      if (busy) await abortChat();
+      stopAudio();
+      busy = true;
+      setSendMode('stop');
+      const reqId = ++chatRequestId;
+      const controller = new AbortController();
+      chatAbortController = controller;
+
+      addBubble(text, 'me');
+      msg.value = '';
+      autoGrow();
+      const visionId = pendingVision ? pendingVision.vision_id : null;
+      hideVisionCard();
+
+      typingEl = addBubble('小贾在想…', 'jarvis');
+      typingEl.classList.add('typing');
+
+      try {
+        const payload = { message: text, session_id: sessionId };
+        if (visionId) payload.vision_id = visionId;
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        if (reqId !== chatRequestId) return;
+        if (typingEl) { typingEl.remove(); typingEl = null; }
+        if (res.status === 499) return;
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          addBubble('呜，小贾出了点小问题：' + (err.detail || res.status), 'jarvis');
+        } else {
+          const data = await res.json();
+          sessionId = data.session_id || sessionId;
+          const replyText = data.reply || '（小贾没说话）';
+          const made = addJarvisReply(replyText);
+          // 语音进 → 语音出；打字进 → 只出文字（想听点 🔈）
+          if (autoSpeak && lastInputWasVoice && made && made.btn) {
+            playText(replyText, made.btn);
+          }
+        }
+      } catch (e) {
+        if (reqId !== chatRequestId) return;
+        if (e.name === 'AbortError') return;
+        if (typingEl) { typingEl.remove(); typingEl = null; }
+        addBubble('网络好像断了，等会儿再试试好吗？', 'jarvis');
+      } finally {
+        if (reqId === chatRequestId) {
+          chatAbortController = null;
+          busy = false;
+          setSendMode('send');
+        }
+        msg.focus();
+      }
+    }
+
+    send.addEventListener('click', () => {
+      if (busy) { abortChat(); return; }
+      lastInputWasVoice = false;
+      sendMessage();
+    });
+    msg.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        lastInputWasVoice = false;
+        sendMessage();
+      }
+    });
+
+    function hideVisionCard() {
+      document.getElementById('vision-card').classList.remove('show');
+      if (pendingVision) {
+        hint.textContent = '📷 仍关联本张照片 · 可继续打字（记学情/讲解均可）';
+      }
+    }
+
+    function dismissVisionContext() {
+      pendingVision = null;
+      document.getElementById('vision-card').classList.remove('show');
+      document.getElementById('visionActions').innerHTML = '';
+      hint.textContent = '输入后点 ➤ 发送';
+    }
+
+    function quickButtonsForVision(v) {
+      const graded = (v.image_type || '').startsWith('graded_homework');
+      if (graded) {
+        return [
+          { text: '帮我把错题记进学情', primary: true },
+          { text: '讲讲我做错的题', primary: false },
+          { text: '这道我不会，教教我', primary: false },
+        ];
+      }
+      return [
+        { text: '这道我不会，教教我', primary: true },
+        { text: '再给我出两道类似的', primary: false },
+      ];
+    }
+
+    function showVisionCard(v) {
+      pendingVision = v;
+      document.getElementById('visionTitle').textContent = v.card_title || '📷 已看清图片';
+      document.getElementById('visionSub').textContent = v.card_subtitle || v.summary || '';
+      const actions = document.getElementById('visionActions');
+      actions.innerHTML = '';
+      quickButtonsForVision(v).forEach(({ text, primary }) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'v-btn' + (primary ? ' primary' : '');
+        b.textContent = text;
+        b.addEventListener('click', () => {
+          lastInputWasVoice = false;
+          sendMessage(text);
+        });
+        actions.appendChild(b);
+      });
+      document.getElementById('vision-card').classList.add('show');
+      hint.textContent = '选快捷说法或自己打字～讲解和记学情都可以；输入框留空即可';
+      msg.focus();
+    }
+
+    document.getElementById('visionDismiss').addEventListener('click', () => {
+      dismissVisionContext();
+    });
+
+    // 📷 拍照：理解型 VLM → Vision 卡片（不填输入框 · P7）
+    const cameraBtn = document.getElementById('camera');
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.capture = 'environment';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    cameraBtn.addEventListener('click', () => {
+      if (busy) return;
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files && fileInput.files[0];
+      fileInput.value = '';
+      if (!file) return;
+      stopAudio();
+      cameraBtn.disabled = true;
+      hint.textContent = '📷 正在认真看这张作业…';
+      try {
+        const fd = new FormData();
+        fd.append('image', file);
+        const res = await fetch('/api/vision/understand', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          hint.textContent = '没认出来：' + (err.detail || res.status) + '，可以打字告诉我～';
+        } else {
+          const data = await res.json();
+          if (!data.vision_id) {
+            hint.textContent = '这张图我没看清，再拍清楚一点好吗？';
+          } else {
+            showVisionCard(data);
+          }
+        }
+      } catch (e) {
+        hint.textContent = '上传失败了，检查下网络再试试～';
+      } finally {
+        cameraBtn.disabled = false;
+      }
+    });
+
+    // 🎤 浏览器语音识别（Web Speech API，中文）
+    const micBtn = document.getElementById('mic');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recog = null;
+    let listening = false;
+    let voiceFinishMode = null;   // 'manual' | 'silence'
+    let voiceSendTimer = null;
+    const VOICE_SILENCE_MS = 2800;  // 停顿约 2.8 秒才自动发送，短停顿不会截断
+
+    function clearVoiceSendTimer() {
+      if (voiceSendTimer) { clearTimeout(voiceSendTimer); voiceSendTimer = null; }
+    }
+
+    function scheduleVoiceAutoSend() {
+      clearVoiceSendTimer();
+      voiceSendTimer = setTimeout(() => {
+        if (!listening) return;
+        voiceFinishMode = 'silence';
+        try { recog.stop(); } catch (e) { /* ignore */ }
+      }, VOICE_SILENCE_MS);
+    }
+
+    function finishVoiceAndSend() {
+      const txt = msg.value.trim();
+      voiceFinishMode = null;
+      clearVoiceSendTimer();
+      if (txt) {
+        lastInputWasVoice = true;
+        sendMessage();
+      } else {
+        hint.textContent = '没听清，再说一次好吗？';
+      }
+    }
+
+    if (!SR) {
+      micBtn.addEventListener('click', () => {
+        hint.textContent = '这个浏览器不支持语音，请用 Chrome/Edge，或先打字～';
+      });
+    } else {
+      recog = new SR();
+      recog.lang = 'zh-CN';
+      recog.interimResults = true;
+      recog.continuous = true;  // 短停顿不截断，可一口气说完整句
+
+      recog.onstart = () => {
+        listening = true;
+        voiceFinishMode = null;
+        micBtn.classList.add('recording');
+        hint.textContent = '🎤 在听…说完点 🎤，或停顿约 3 秒自动发送';
+      };
+      recog.onerror = (e) => {
+        if (e.error === 'aborted') return;
+        hint.textContent = e.error === 'not-allowed'
+          ? '没有麦克风权限，请允许后再试～'
+          : '没听清，再说一次好吗？';
+      };
+      recog.onend = () => {
+        listening = false;
+        micBtn.classList.remove('recording');
+        clearVoiceSendTimer();
+        if (voiceFinishMode) finishVoiceAndSend();
+      };
+      recog.onresult = (event) => {
+        let txt = '';
+        for (let i = 0; i < event.results.length; i++) {
+          txt += event.results[i][0].transcript;
+        }
+        msg.value = txt;
+        autoGrow();
+        if (event.results[event.results.length - 1].isFinal) {
+          scheduleVoiceAutoSend();
+        }
+      };
+
+      micBtn.addEventListener('click', () => {
+        if (busy) { abortChat(); return; }
+        if (listening) {
+          voiceFinishMode = 'manual';
+          try { recog.stop(); } catch (e) { /* ignore */ }
+          return;
+        }
+        stopAudio();
+        msg.value = '';
+        autoGrow();
+        try { recog.start(); } catch (e) { /* 已在监听 */ }
+      });
+    }
+  </script>
+</body>
+</html>

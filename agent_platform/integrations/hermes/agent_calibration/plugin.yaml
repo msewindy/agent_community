@@ -1,0 +1,4 @@
+name: agent-calibration
+version: 0.1.0
+description: "Agent community calibration + behavior profile — US-6 / US-3 (M7)."
+kind: standalone

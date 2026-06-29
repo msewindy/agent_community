@@ -1,0 +1,804 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent_platform.memory",
+  "version": "1.0.0",
+  "definitions": {
+    "ObserveEvent": {
+      "$defs": {
+        "ObserveSource": {
+          "enum": [
+            "cli",
+            "chat",
+            "voice",
+            "demo",
+            "reachy"
+          ],
+          "title": "ObserveSource",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "观测事件 — 进入记忆管道前的统一输入（阶段 A 最小字段）。",
+      "properties": {
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "ts": {
+          "format": "date-time",
+          "title": "Ts",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/ObserveSource",
+          "default": "chat"
+        },
+        "modality": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Modality",
+          "type": "array"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "payload": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payload"
+        },
+        "trace_id": {
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "device_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device Id"
+        },
+        "entities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Entities",
+          "type": "array"
+        },
+        "scene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scene"
+        },
+        "raw_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Raw Refs",
+          "type": "array"
+        }
+      },
+      "title": "ObserveEvent",
+      "type": "object"
+    },
+    "MemoryRecord": {
+      "$defs": {
+        "MemoryCategory": {
+          "description": "产品侧分类，与 MemVerse 内部分层解耦。",
+          "enum": [
+            "user_profile",
+            "preference",
+            "project",
+            "episode",
+            "other"
+          ],
+          "title": "MemoryCategory",
+          "type": "string"
+        },
+        "MemoryKind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "note"
+          ],
+          "title": "MemoryKind",
+          "type": "string"
+        },
+        "MemoryStatus": {
+          "enum": [
+            "active",
+            "tombstoned"
+          ],
+          "title": "MemoryStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "record_id": {
+          "title": "Record Id",
+          "type": "string"
+        },
+        "device_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Device Id",
+          "type": "string"
+        },
+        "ts": {
+          "format": "date-time",
+          "title": "Ts",
+          "type": "string"
+        },
+        "category": {
+          "$ref": "#/$defs/MemoryCategory",
+          "default": "other"
+        },
+        "kind": {
+          "$ref": "#/$defs/MemoryKind",
+          "default": "fact"
+        },
+        "content": {
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "content_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Hash"
+        },
+        "status": {
+          "$ref": "#/$defs/MemoryStatus",
+          "default": "active"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supersedes"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        },
+        "source_event_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Event Id"
+        },
+        "confidence": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "device_id",
+        "content"
+      ],
+      "title": "MemoryRecord",
+      "type": "object"
+    },
+    "MemoryWriteRequest": {
+      "$defs": {
+        "MemoryCategory": {
+          "description": "产品侧分类，与 MemVerse 内部分层解耦。",
+          "enum": [
+            "user_profile",
+            "preference",
+            "project",
+            "episode",
+            "other"
+          ],
+          "title": "MemoryCategory",
+          "type": "string"
+        },
+        "MemoryKind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "note"
+          ],
+          "title": "MemoryKind",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "device_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Device Id",
+          "type": "string"
+        },
+        "category": {
+          "$ref": "#/$defs/MemoryCategory",
+          "default": "other"
+        },
+        "kind": {
+          "$ref": "#/$defs/MemoryKind",
+          "default": "fact"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        },
+        "source_event_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Event Id"
+        },
+        "confidence": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "content",
+        "device_id"
+      ],
+      "title": "MemoryWriteRequest",
+      "type": "object"
+    },
+    "MemorySearchRequest": {
+      "$defs": {
+        "MemoryCategory": {
+          "description": "产品侧分类，与 MemVerse 内部分层解耦。",
+          "enum": [
+            "user_profile",
+            "preference",
+            "project",
+            "episode",
+            "other"
+          ],
+          "title": "MemoryCategory",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "device_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device Id"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MemoryCategory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "limit": {
+          "default": 10,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "title": "MemorySearchRequest",
+      "type": "object"
+    },
+    "MemoryHit": {
+      "$defs": {
+        "MemoryCategory": {
+          "description": "产品侧分类，与 MemVerse 内部分层解耦。",
+          "enum": [
+            "user_profile",
+            "preference",
+            "project",
+            "episode",
+            "other"
+          ],
+          "title": "MemoryCategory",
+          "type": "string"
+        },
+        "MemoryKind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "note"
+          ],
+          "title": "MemoryKind",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "record_id": {
+          "title": "Record Id",
+          "type": "string"
+        },
+        "content": {
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "score": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
+        "device_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device Id"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MemoryCategory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MemoryKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ts": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ts"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "record_id",
+        "content"
+      ],
+      "title": "MemoryHit",
+      "type": "object"
+    },
+    "MemorySearchResult": {
+      "$defs": {
+        "MemoryCategory": {
+          "description": "产品侧分类，与 MemVerse 内部分层解耦。",
+          "enum": [
+            "user_profile",
+            "preference",
+            "project",
+            "episode",
+            "other"
+          ],
+          "title": "MemoryCategory",
+          "type": "string"
+        },
+        "MemoryHit": {
+          "additionalProperties": false,
+          "properties": {
+            "record_id": {
+              "title": "Record Id",
+              "type": "string"
+            },
+            "content": {
+              "minLength": 1,
+              "title": "Content",
+              "type": "string"
+            },
+            "score": {
+              "default": 1.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Score",
+              "type": "number"
+            },
+            "device_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Device Id"
+            },
+            "category": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MemoryCategory"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "kind": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/MemoryKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "ts": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Ts"
+            },
+            "metadata": {
+              "additionalProperties": true,
+              "title": "Metadata",
+              "type": "object"
+            }
+          },
+          "required": [
+            "record_id",
+            "content"
+          ],
+          "title": "MemoryHit",
+          "type": "object"
+        },
+        "MemoryKind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "note"
+          ],
+          "title": "MemoryKind",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "hits": {
+          "items": {
+            "$ref": "#/$defs/MemoryHit"
+          },
+          "title": "Hits",
+          "type": "array"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw"
+        }
+      },
+      "title": "MemorySearchResult",
+      "type": "object"
+    },
+    "MemoryCorrectRequest": {
+      "$defs": {
+        "MemoryCategory": {
+          "description": "产品侧分类，与 MemVerse 内部分层解耦。",
+          "enum": [
+            "user_profile",
+            "preference",
+            "project",
+            "episode",
+            "other"
+          ],
+          "title": "MemoryCategory",
+          "type": "string"
+        },
+        "MemoryKind": {
+          "enum": [
+            "fact",
+            "preference",
+            "episode",
+            "note"
+          ],
+          "title": "MemoryKind",
+          "type": "string"
+        },
+        "MemoryWriteRequest": {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "minLength": 1,
+              "title": "Content",
+              "type": "string"
+            },
+            "device_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Device Id",
+              "type": "string"
+            },
+            "category": {
+              "$ref": "#/$defs/MemoryCategory",
+              "default": "other"
+            },
+            "kind": {
+              "$ref": "#/$defs/MemoryKind",
+              "default": "fact"
+            },
+            "trace_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Trace Id"
+            },
+            "source_event_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Event Id"
+            },
+            "confidence": {
+              "default": 1.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Confidence",
+              "type": "number"
+            },
+            "metadata": {
+              "additionalProperties": true,
+              "title": "Metadata",
+              "type": "object"
+            }
+          },
+          "required": [
+            "content",
+            "device_id"
+          ],
+          "title": "MemoryWriteRequest",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "纠正：对旧记录 tombstone，并可选写入新事实。",
+      "properties": {
+        "record_id": {
+          "minLength": 1,
+          "title": "Record Id",
+          "type": "string"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "replacement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MemoryWriteRequest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "trace_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Id"
+        }
+      },
+      "required": [
+        "record_id"
+      ],
+      "title": "MemoryCorrectRequest",
+      "type": "object"
+    },
+    "GateDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed": {
+          "title": "Allowed",
+          "type": "boolean"
+        },
+        "reason_code": {
+          "default": "ok",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        }
+      },
+      "required": [
+        "allowed"
+      ],
+      "title": "GateDecision",
+      "type": "object"
+    }
+  }
+}

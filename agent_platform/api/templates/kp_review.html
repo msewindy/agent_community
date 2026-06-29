@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>知识点入库</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f7f9; }
+    body { margin: 0; min-height: 100vh; }
+    .topbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+    .topbar h1 { font-size: 1.25rem; margin: 0; }
+    .layout { display: grid; grid-template-columns: 380px 1fr; min-height: calc(100vh - 65px); }
+    @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+    .list-pane { background: #fff; border-right: 1px solid #e2e8f0; padding: 1rem; overflow: auto; }
+    .detail-pane { padding: 1rem 1.25rem; overflow: auto; }
+    button { cursor: pointer; background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 0.45rem 0.85rem; font-size: 0.92rem; }
+    button.secondary { background: #64748b; }
+    button.danger { background: #dc2626; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.55rem 0.4rem; border-bottom: 1px solid #eef2f7; vertical-align: top; }
+    th { color: #64748b; font-weight: 600; font-size: 0.8rem; }
+    tr.job-row { cursor: pointer; }
+    tr.job-row:hover { background: #f8fafc; }
+    tr.job-row.active { background: #eff6ff; }
+    .badge { display: inline-block; font-size: 0.72rem; padding: 0.12rem 0.45rem; border-radius: 999px; white-space: nowrap; }
+    .badge.pending { background: #fef3c7; color: #92400e; }
+    .badge.approved { background: #dcfce7; color: #166534; }
+    .badge.rejected { background: #fee2e2; color: #991b1b; }
+    .card { background: #fff; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .card h2 { font-size: 0.95rem; margin: 0 0 0.65rem; color: #334155; }
+    .card h3 { font-size: 0.88rem; margin: 0.75rem 0 0.4rem; color: #475569; }
+    .msg { margin-bottom: 0.75rem; padding: 0.55rem 0.75rem; border-radius: 6px; font-size: 0.88rem; }
+    .msg.ok { background: #dcfce7; }
+    .msg.err { background: #fee2e2; }
+    .empty { color: #64748b; font-size: 0.9rem; padding: 2rem 0; text-align: center; }
+    .meta-grid { display: grid; gap: 0.35rem; font-size: 0.88rem; color: #475569; }
+    .hint { color: #64748b; font-size: 0.82rem; margin-top: 0.25rem; }
+    .check-item { display: flex; gap: 0.5rem; font-size: 0.88rem; margin: 0.35rem 0; }
+    .check-item .ok { color: #16a34a; }
+    .check-item .no { color: #dc2626; }
+    .doc-tree ul { list-style: none; margin: 0; padding-left: 1rem; font-size: 0.86rem; }
+    .doc-tree li { margin: 0.2rem 0; }
+    .cmp-table { width: 100%; font-size: 0.84rem; margin-top: 0.35rem; }
+    .cmp-table th, .cmp-table td { border: 1px solid #e2e8f0; padding: 0.4rem 0.5rem; }
+    .cmp-table th { background: #f8fafc; }
+    .resolve-box { margin-top: 0.45rem; display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+    .resolved-tag { color: #166534; font-size: 0.82rem; margin-top: 0.35rem; }
+    .toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 20; align-items: center; justify-content: center; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: #fff; border-radius: 12px; padding: 1.25rem; width: min(460px, 92vw); box-shadow: 0 8px 30px rgba(0,0,0,.15); }
+    .modal h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+    .modal label { display: block; font-size: 0.88rem; margin-bottom: 0.65rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+    input[type=file], input[type=text] { font-size: 0.88rem; max-width: 100%; margin-top: 0.35rem; padding: 0.4rem; box-sizing: border-box; width: 100%; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>知识点入库</h1>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+      <a href="/kp-catalog" style="color:#2563eb;text-decoration:none;font-size:0.88rem;padding:0.35rem 0.65rem;border-radius:6px;border:1px solid #dbeafe;background:#eff6ff">浏览知识库</a>
+      <button type="button" id="btnNew">新建提交</button>
+    </div>
+  </header>
+
+  <div id="message"></div>
+
+  <div class="layout">
+    <aside class="list-pane">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+        <strong style="font-size:0.9rem">提交记录</strong>
+        <button type="button" id="btnRefreshList" class="secondary" style="padding:0.3rem 0.55rem;font-size:0.8rem">刷新</button>
+      </div>
+      <table>
+        <thead><tr><th>文件</th><th>学科</th><th>状态</th></tr></thead>
+        <tbody id="jobTableBody"><tr><td colspan="3" class="empty">加载中…</td></tr></tbody>
+      </table>
+    </aside>
+    <main class="detail-pane" id="detailPane">
+      <div class="empty">请从左侧选择一条提交记录</div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <h3>新建提交</h3>
+      <label>选择 .kp.md 文件
+        <input id="modalFile" type="file" accept=".md,.kp.md,text/markdown" />
+      </label>
+      <label>来源路径（选填，如 docs/content/语文-二年级.kp.md）
+        <input id="modalSourcePath" type="text" placeholder="docs/content/..." />
+      </label>
+      <div class="modal-actions">
+        <button type="button" id="btnModalCancel" class="secondary">取消</button>
+        <button type="button" id="btnModalSubmit">上传并提交</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let jobs = [], currentJobId = "", pendingReview = false;
+
+    function showMsg(text, ok) {
+      const el = $("message");
+      if (!text) { el.className = ""; el.textContent = ""; return; }
+      el.className = "msg " + (ok ? "ok" : "err");
+      el.style.margin = "0.75rem 1.25rem 0";
+      el.textContent = text;
+    }
+
+    function statusBadge(status, label) {
+      const cls = status === "approved" ? "approved" : status === "rejected" ? "rejected" : "pending";
+      return `<span class="badge ${cls}">${label || status}</span>`;
+    }
+
+    function actionOptions(item, selected) {
+      return (item.allowed_actions || []).map(a => {
+        const label = (item.action_labels && item.action_labels[a]) || a;
+        const sel = selected && a === selected ? " selected" : "";
+        return `<option value="${a}"${sel}>${label}</option>`;
+      }).join("");
+    }
+
+    function renderResolveBox(item) {
+      if (!pendingReview || !item.conflict_id || !item.blocking) return "";
+      const rename = (item.allowed_actions || []).includes("rename_draft");
+      const selected = item.resolution
+        ? item.resolution.action
+        : (item.allowed_actions || [])[0];
+      const renameValue = item.resolution && item.resolution.new_knowledge_point_id
+        ? String(item.resolution.new_knowledge_point_id).replace(/"/g, "&quot;")
+        : "";
+      const btnLabel = item.resolution ? "更新" : "应用";
+      return `<div class="resolve-box" data-id="${item.conflict_id}">
+        <select class="action-select">${actionOptions(item, selected)}</select>
+        ${rename ? `<input class="new-kp-id" type="text" placeholder="新知识点编号" style="min-width:10rem" value="${renameValue}" />` : ""}
+        <button type="button" class="btn-resolve secondary" style="padding:0.35rem 0.6rem">${btnLabel}</button>
+      </div>`;
+    }
+
+    function renderKbComparison(kb) {
+      if (!kb) return "<p>无对比数据</p>";
+      let html = "";
+
+      if (kb.unit_notes && kb.unit_notes.length) {
+        html += "<h3>单元名称提示</h3><table class=\"cmp-table\"><thead><tr><th>单元编号</th><th>知识库中</th><th>文档中</th><th>说明</th></tr></thead><tbody>";
+        kb.unit_notes.forEach(n => {
+          html += `<tr><td><code>${n.unit_id}</code></td><td>${n.catalog_title || "—"}</td><td>${n.draft_title || "—"}</td><td class="hint">${n.note || ""}</td></tr>`;
+        });
+        html += "</tbody></table>";
+      }
+
+      if (kb.new_units && kb.new_units.length) {
+        html += "<h3>新增单元</h3>";
+        kb.new_units.forEach(u => {
+          html += `<p><strong>${u.unit_title}</strong> <span class="hint">(${u.unit_id})</span></p>`;
+          html += `<table class="cmp-table"><thead><tr><th>知识点编号</th><th>文档标题</th><th>操作</th></tr></thead><tbody>`;
+          (u.knowledge_points || []).forEach(kp => {
+            const resolveItem = kp.conflict_id ? kp : null;
+            html += `<tr><td><code>${kp.knowledge_point_id}</code></td><td>${kp.title || "—"}</td><td>${resolveItem ? renderResolveBox(resolveItem) : "—"}</td></tr>`;
+          });
+          html += "</tbody></table>";
+        });
+      }
+
+      (kb.groups || []).forEach(group => {
+        html += `<h3>${group.label}</h3>`;
+        if (group.key === "different" || group.key === "catalog_only") {
+          html += `<table class="cmp-table"><thead><tr><th>单元</th><th>知识点编号</th><th>知识库中</th><th>文档中</th><th>操作</th></tr></thead><tbody>`;
+          group.items.forEach(item => {
+            html += `<tr>
+              <td>${item.unit_title || item.unit_id}</td>
+              <td><code>${item.knowledge_point_id}</code></td>
+              <td>${item.catalog_title || "—"}</td>
+              <td>${item.draft_title || "—"}</td>
+              <td>${renderResolveBox(item)}</td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+        } else if (group.key === "new") {
+          html += `<table class="cmp-table"><thead><tr><th>单元</th><th>知识点编号</th><th>文档标题</th></tr></thead><tbody>`;
+          group.items.forEach(item => {
+            html += `<tr><td>${item.unit_title || item.unit_id}</td><td><code>${item.knowledge_point_id}</code></td><td>${item.draft_title || "—"}</td></tr>`;
+          });
+          html += "</tbody></table>";
+        } else {
+          html += `<table class="cmp-table"><thead><tr><th>单元</th><th>知识点编号</th><th>标题</th></tr></thead><tbody>`;
+          group.items.forEach(item => {
+            html += `<tr><td>${item.unit_title || item.unit_id}</td><td><code>${item.knowledge_point_id}</code></td><td>${item.draft_title || item.catalog_title || "—"}</td></tr>`;
+          });
+          html += "</tbody></table>";
+        }
+      });
+
+      return html || "<p>与当前知识库无差异</p>";
+    }
+
+    function renderDocumentContent(units) {
+      if (!units || !units.length) return "<p>无文档内容</p>";
+      return `<div class="doc-tree"><ul>${units.map(u => `
+        <li><strong>${u.unit_title}</strong> <span class="hint">(${u.unit_id})</span>
+          <ul>${(u.knowledge_points || []).map(kp => `
+            <li>${kp.title} <code>${kp.knowledge_point_id}</code>${kp.description ? `<span class="hint"> — ${kp.description}</span>` : ""}</li>
+          `).join("")}</ul>
+        </li>`).join("")}</ul></div>`;
+    }
+
+    function renderFormatChecks(items) {
+      if (!items || !items.length) return "<p>无格式检查结果</p>";
+      return items.map(item => `
+        <div class="check-item">
+          <span class="${item.satisfied ? "ok" : "no"}">${item.satisfied ? "✓" : "✗"}</span>
+          <div>${item.title}<div class="hint">${item.detail || ""}</div></div>
+        </div>`).join("");
+    }
+
+    async function loadJobs(selectId) {
+      const res = await fetch("/api/kp/ingest/jobs");
+      if (!res.ok) { showMsg("加载提交列表失败", false); return; }
+      jobs = await res.json();
+      const tbody = $("jobTableBody");
+      if (!jobs.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty">暂无提交，点击「新建提交」</td></tr>';
+        currentJobId = "";
+        $("detailPane").innerHTML = '<div class="empty">请从左侧选择一条提交记录</div>';
+        return;
+      }
+      tbody.innerHTML = jobs.map(j => `
+        <tr class="job-row ${j.job_id === currentJobId ? "active" : ""}" data-id="${j.job_id}">
+          <td><div>${j.source_filename}</div><div class="hint">${j.created_at.slice(0,19).replace("T"," ")}</div></td>
+          <td>${j.subject || "—"}<br><span class="hint">${j.grade ? j.grade + "年级" : ""}</span></td>
+          <td>${statusBadge(j.status, j.status_label)}</td>
+        </tr>`).join("");
+      tbody.querySelectorAll(".job-row").forEach(row => row.addEventListener("click", () => selectJob(row.dataset.id)));
+      const pick = selectId && jobs.some(j => j.job_id === selectId) ? selectId : jobs[0].job_id;
+      await selectJob(pick);
+    }
+
+    async function selectJob(jobId) {
+      currentJobId = jobId;
+      document.querySelectorAll(".job-row").forEach(r => r.classList.toggle("active", r.dataset.id === jobId));
+      const res = await fetch(`/api/kp/ingest/jobs/${encodeURIComponent(jobId)}/review`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("加载详情失败: " + (err.detail || res.status), false);
+        return;
+      }
+      const data = await res.json();
+      pendingReview = data.status === "pending_review";
+      renderDetail(data);
+    }
+
+    function bindResolveActions() {
+      $("detailPane").querySelectorAll(".btn-resolve").forEach(btn => {
+        btn.addEventListener("click", async (ev) => {
+          const box = ev.target.closest("[data-id]");
+          const body = { conflict_id: box.dataset.id, action: box.querySelector(".action-select").value };
+          const nk = box.querySelector(".new-kp-id");
+          if (nk && nk.value.trim()) body.new_knowledge_point_id = nk.value.trim();
+          const res = await fetch(`/api/kp/ingest/jobs/${encodeURIComponent(currentJobId)}/resolve`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            showMsg("处理失败: " + (err.detail || res.status), false);
+            return;
+          }
+          showMsg("已保存处理方式", true);
+          await selectJob(currentJobId);
+          await loadJobs(currentJobId);
+        });
+      });
+    }
+
+    function renderDetail(data) {
+      const summary = data.catalog_diff && data.catalog_diff.summary ? data.catalog_diff.summary : {};
+      let actions = "";
+      if (data.status === "pending_review") {
+        actions = `
+          <div class="toolbar">
+            <button type="button" id="btnApprove" ${data.ready_to_approve ? "" : "disabled"}>批准入库</button>
+            <button type="button" id="btnReject" class="danger secondary">拒绝</button>
+          </div>
+          ${data.ready_to_approve ? "" : '<p class="hint">须通过格式校验并处理全部差异项后方可入库</p>'}`;
+      }
+
+      let outcome = "";
+      if (data.status === "approved") {
+        outcome = `<div class="card"><h2>入库结果</h2><div class="meta-grid">
+          <div>批准时间：${data.approved_at || "—"}</div>
+          <div>备份文件：${data.catalog_backup_path || "—"}</div>
+          ${data.merge_report ? `<div>新增单元：${(data.merge_report.units_added || []).join("、") || "无"}</div>
+          <div>更新单元：${(data.merge_report.units_updated || []).join("、") || "无"}</div>` : ""}
+        </div></div>`;
+      } else if (data.status === "rejected") {
+        outcome = `<div class="card"><h2>拒绝原因</h2><p>${(data.notes || []).filter(n => n.startsWith("rejected:")).map(n => n.replace(/^rejected:\s*/, "")).join("<br>") || "—"}</p></div>`;
+      }
+
+      $("detailPane").innerHTML = `
+        <div class="card"><h2>提交信息</h2><div class="meta-grid">
+          <div>状态：${statusBadge(data.status, data.status_label)}</div>
+          <div>文件路径：<strong>${data.display_path || data.source_filename}</strong></div>
+          ${data.display_hint ? `<div class="hint">${data.display_hint}</div>` : ""}
+          <div>摘要：${data.document_preview || "—"}</div>
+          <div>变更概览：${summary.new_units || 0} 个新单元 · ${summary.new_knowledge_points || 0} 个新知识点 · 待处理 ${data.blocking_unresolved || 0} 项</div>
+        </div>${actions}</div>
+        <div class="card"><h2>文件格式校验</h2>${renderFormatChecks(data.format_validation)}</div>
+        <div class="card"><h2>文档内容</h2>${renderDocumentContent(data.document_content)}</div>
+        <div class="card"><h2>与当前知识库对比</h2>${renderKbComparison(data.kb_comparison)}</div>
+        ${outcome}`;
+
+      bindResolveActions();
+      const approveBtn = $("btnApprove");
+      if (approveBtn) approveBtn.addEventListener("click", approveJob);
+      const rejectBtn = $("btnReject");
+      if (rejectBtn) rejectBtn.addEventListener("click", rejectJob);
+    }
+
+    async function approveJob() {
+      if (!confirm("确认将文档内容合并写入知识库？")) return;
+      const res = await fetch(`/api/kp/ingest/jobs/${encodeURIComponent(currentJobId)}/approve`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("入库失败: " + (err.detail || res.status), false);
+        return;
+      }
+      showMsg("已批准入库", true);
+      await loadJobs(currentJobId);
+    }
+
+    async function rejectJob() {
+      const reason = prompt("拒绝原因（可选）") || "";
+      const res = await fetch(`/api/kp/ingest/jobs/${encodeURIComponent(currentJobId)}/reject`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("拒绝失败: " + (err.detail || res.status), false);
+        return;
+      }
+      showMsg("已拒绝", true);
+      await loadJobs(currentJobId);
+    }
+
+    function openModal() { $("modalBackdrop").classList.add("open"); $("modalFile").value = ""; $("modalSourcePath").value = ""; }
+    function closeModal() { $("modalBackdrop").classList.remove("open"); }
+
+    async function submitUpload() {
+      const input = $("modalFile");
+      if (!input.files || !input.files.length) { showMsg("请选择文件", false); return; }
+      const form = new FormData();
+      form.append("file", input.files[0], input.files[0].name);
+      const src = $("modalSourcePath").value.trim();
+      if (src) form.append("client_source_path", src);
+      const res = await fetch("/api/kp/ingest/submit", { method: "POST", body: form });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("提交失败: " + (err.detail || res.status), false);
+        return;
+      }
+      const data = await res.json();
+      closeModal();
+      showMsg(`已创建提交 ${data.job.job_id}`, true);
+      await loadJobs(data.job.job_id);
+    }
+
+    $("btnNew").addEventListener("click", openModal);
+    $("btnModalCancel").addEventListener("click", closeModal);
+    $("btnModalSubmit").addEventListener("click", submitUpload);
+    $("btnRefreshList").addEventListener("click", () => loadJobs(currentJobId));
+    $("modalBackdrop").addEventListener("click", (e) => { if (e.target === $("modalBackdrop")) closeModal(); });
+    loadJobs();
+  </script>
+</body>
+</html>

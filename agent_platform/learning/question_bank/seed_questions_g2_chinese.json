@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "unit_id": "chinese-g2-sentence-basic",
+  "grade": 2,
+  "subject": "语文",
+  "questions": [
+    {
+      "question_id": "q-g2c-001",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-period",
+      "stem": "「今天天气很好」句末应填什么标点？（填符号）",
+      "answer_type": "exact",
+      "expected_answer": "。",
+      "explanation": "陈述句句末用句号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-g2c-002",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-question",
+      "stem": "「你叫什么名字」句末应填什么标点？",
+      "answer_type": "exact",
+      "expected_answer": "？",
+      "explanation": "疑问句句末用问号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-g2c-003",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-word-order",
+      "stem": "排列通顺：①今天 ②我 ③去 ④学校 — 正确顺序的数字（如1234）",
+      "answer_type": "exact",
+      "expected_answer": "4132",
+      "explanation": "今天我回学校/去学校：今天+我+去+学校。",
+      "default_error_code": "WORD_ORDER_ERROR"
+    },
+    {
+      "question_id": "q-g2c-004",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-period",
+      "stem": "「小鸟在树上唱歌」句末标点？",
+      "answer_type": "exact",
+      "expected_answer": "。",
+      "explanation": "陈述句用句号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-g2c-005",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-question",
+      "stem": "「几点了」句末应填？",
+      "answer_type": "exact",
+      "expected_answer": "？",
+      "explanation": "问时间用问号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-g2c-006",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-word-order",
+      "stem": "选通顺的一句：A我吃饭在 B我在吃饭 — 答 A 或 B",
+      "answer_type": "exact",
+      "expected_answer": "B",
+      "explanation": "我在吃饭 语序正确。",
+      "default_error_code": "WORD_ORDER_ERROR"
+    },
+    {
+      "question_id": "q-g2c-007",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-period",
+      "stem": "「妈妈爱我」句末标点？",
+      "answer_type": "exact",
+      "expected_answer": "。",
+      "explanation": "陈述句。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-g2c-008",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-question",
+      "stem": "「你去哪里」句末标点？（填？或。）",
+      "answer_type": "exact",
+      "expected_answer": "？",
+      "explanation": "疑问句。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-g2c-009",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-word-order",
+      "stem": "哪个词组更通顺？A一个红色的苹果 B苹果红色的一个 — 答 A 或 B",
+      "answer_type": "exact",
+      "expected_answer": "A",
+      "explanation": "量词+形容词+名词：一个红色的苹果。",
+      "default_error_code": "WORD_ORDER_ERROR"
+    },
+    {
+      "question_id": "q-g2c-010",
+      "unit_id": "chinese-g2-sentence-basic",
+      "knowledge_point_id": "kp-g2-punct-period",
+      "stem": "「我们在上课」句末标点？",
+      "answer_type": "exact",
+      "expected_answer": "。",
+      "explanation": "陈述句句号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    }
+  ]
+}

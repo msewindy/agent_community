@@ -1,0 +1,4 @@
+name: agent-tools
+version: 0.1.0
+description: "Agent community MCP tools — filesystem/fetch/obsidian with L0–L2 draft gate (M6)."
+kind: standalone

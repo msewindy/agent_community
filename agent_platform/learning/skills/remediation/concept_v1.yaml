@@ -1,0 +1,10 @@
+skill_id: remediation/concept_v1
+title: 概念澄清微练
+duration_min: 8
+error_codes:
+  - CONCEPT_DOMAIN
+  - READING_ERROR
+procedure: |
+  1. 用一句话复述题目在问什么（定义域/列式/条件）。
+  2. 对照教材或 Wiki 找关键定义，标出容易忽略的限制（如分母≠0）。
+  3. 做 1 道同类概念判断题，口述理由后再动笔。

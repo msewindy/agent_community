@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>记忆面板 · US-7</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f7f9; }
+    body { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.35rem; margin-bottom: 0.25rem; }
+    .meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin-bottom: 1rem; }
+    label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 0.25rem; }
+    input, select, button { padding: 0.45rem 0.6rem; font-size: 0.95rem; }
+    button { cursor: pointer; background: #2563eb; color: #fff; border: none; border-radius: 6px; }
+    button.danger { background: #dc2626; }
+    button.secondary { background: #64748b; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    th { background: #eef2ff; font-size: 0.8rem; }
+    td.content { max-width: 360px; word-break: break-word; }
+    .empty { padding: 2rem; text-align: center; color: #666; }
+    .msg { margin: 0.75rem 0; padding: 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+    .msg.ok { background: #dcfce7; }
+    .msg.err { background: #fee2e2; }
+  </style>
+</head>
+<body>
+  <h1>记忆面板（数据主权）</h1>
+  <p class="meta">后端：<code>{{BACKEND}}</code> · 仅展示 active 记忆 · 删除即 tombstone</p>
+
+  <div class="toolbar">
+    <label>device_id
+      <input id="deviceId" placeholder="reachy-desktop-01" />
+    </label>
+    <label>category
+      <select id="category">
+        <option value="">全部</option>
+        <option value="preference">preference</option>
+        <option value="user_profile">user_profile</option>
+        <option value="project">project</option>
+        <option value="episode">episode</option>
+        <option value="other">other</option>
+      </select>
+    </label>
+    <button type="button" id="btnRefresh" class="secondary">刷新</button>
+  </div>
+
+  <div id="message"></div>
+  <div id="tableWrap"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function showMsg(text, ok) {
+      const el = $("message");
+      el.className = "msg " + (ok ? "ok" : "err");
+      el.textContent = text;
+    }
+
+    async function loadMemories() {
+      const params = new URLSearchParams();
+      const dev = $("deviceId").value.trim();
+      const cat = $("category").value;
+      if (dev) params.set("device_id", dev);
+      if (cat) params.set("category", cat);
+      const res = await fetch("/api/memories?" + params.toString());
+      if (!res.ok) {
+        showMsg("加载失败: " + res.status, false);
+        return;
+      }
+      const rows = await res.json();
+      renderTable(rows);
+      showMsg("共 " + rows.length + " 条 active 记忆", true);
+    }
+
+    function renderTable(rows) {
+      if (!rows.length) {
+        $("tableWrap").innerHTML = '<p class="empty">暂无记忆</p>';
+        return;
+      }
+      const thead = `<tr>
+        <th>时间</th><th>设备</th><th>类别</th><th>内容</th><th>操作</th>
+      </tr>`;
+      const tbody = rows.map((r) => `
+        <tr data-id="${r.record_id}">
+          <td>${r.ts.slice(0, 19)}</td>
+          <td>${r.device_id}</td>
+          <td>${r.category}</td>
+          <td class="content">${escapeHtml(r.content)}</td>
+          <td><button type="button" class="danger btn-del">删除</button></td>
+        </tr>
+      `).join("");
+      $("tableWrap").innerHTML = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+      document.querySelectorAll(".btn-del").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const tr = e.target.closest("tr");
+          const id = tr.dataset.id;
+          if (!confirm("确定删除该记忆？删除后检索将不再返回。")) return;
+          const del = await fetch("/api/memories/" + id, { method: "DELETE" });
+          if (!del.ok) {
+            showMsg("删除失败: " + del.status, false);
+            return;
+          }
+          tr.remove();
+          showMsg("已删除 " + id, true);
+        });
+      });
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    $("btnRefresh").addEventListener("click", loadMemories);
+    loadMemories();
+  </script>
+</body>
+</html>

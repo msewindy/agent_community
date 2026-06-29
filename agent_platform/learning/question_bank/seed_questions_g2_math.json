@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "unit_id": "math-g2-add-sub-100",
+  "grade": 2,
+  "subject": "数学",
+  "questions": [
+    {
+      "question_id": "q-g2m-001",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-add-no-carry",
+      "stem": "计算：23 + 45 = ?",
+      "answer_type": "exact",
+      "expected_answer": "68",
+      "explanation": "个位3+5=8，十位2+4=6，得68。",
+      "default_error_code": "CALCULATION_ERROR"
+    },
+    {
+      "question_id": "q-g2m-002",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-add-carry",
+      "stem": "计算：47 + 38 = ?",
+      "answer_type": "exact",
+      "expected_answer": "85",
+      "explanation": "7+8=15，进1；4+3+1=8，得85。",
+      "default_error_code": "CARRY_ERROR"
+    },
+    {
+      "question_id": "q-g2m-003",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-add-carry",
+      "stem": "计算：56 + 27 = ?",
+      "answer_type": "exact",
+      "expected_answer": "83",
+      "explanation": "6+7=13进1，5+2+1=8。",
+      "default_error_code": "CARRY_ERROR"
+    },
+    {
+      "question_id": "q-g2m-004",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-sub-no-borrow",
+      "stem": "计算：68 - 35 = ?",
+      "answer_type": "exact",
+      "expected_answer": "33",
+      "explanation": "8-5=3，6-3=3。",
+      "default_error_code": "CALCULATION_ERROR"
+    },
+    {
+      "question_id": "q-g2m-005",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-sub-borrow",
+      "stem": "计算：52 - 18 = ?",
+      "answer_type": "exact",
+      "expected_answer": "34",
+      "explanation": "个位不够减，向十位借1，12-8=4，4-1=3。",
+      "default_error_code": "BORROW_ERROR"
+    },
+    {
+      "question_id": "q-g2m-006",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-add-carry",
+      "stem": "小明有 29 颗糖，又买了 14 颗，现在有几颗？（只答数字）",
+      "answer_type": "exact",
+      "expected_answer": "43",
+      "explanation": "29+14=43，需进位。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-g2m-007",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-sub-borrow",
+      "stem": "计算：70 - 26 = ?",
+      "answer_type": "exact",
+      "expected_answer": "44",
+      "explanation": "0-6不够，向十位借1。",
+      "default_error_code": "BORROW_ERROR"
+    },
+    {
+      "question_id": "q-g2m-008",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-add-no-carry",
+      "stem": "计算：31 + 24 = ?",
+      "answer_type": "exact",
+      "expected_answer": "55",
+      "explanation": "1+4=5，3+2=5。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-g2m-009",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-add-carry",
+      "stem": "计算：38 + 37 = ?",
+      "answer_type": "exact",
+      "expected_answer": "75",
+      "explanation": "8+7=15进1，3+3+1=7。",
+      "default_error_code": "CARRY_ERROR"
+    },
+    {
+      "question_id": "q-g2m-010",
+      "unit_id": "math-g2-add-sub-100",
+      "knowledge_point_id": "kp-g2-sub-borrow",
+      "stem": "计算：63 - 27 = ?",
+      "answer_type": "exact",
+      "expected_answer": "36",
+      "explanation": "3-7不够，13-7=6，5-2=3。",
+      "default_error_code": "BORROW_ERROR"
+    }
+  ]
+}

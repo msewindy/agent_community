@@ -1,0 +1,34 @@
+# M3 LLM Wiki — 配置（门面代码不随路径硬编码）
+
+store:
+  # 相对项目根；也可用绝对路径
+  root: wiki_data
+  auto_init: true   # 缺失时创建 raw/、wiki/ 子目录与种子 index/log
+
+search:
+  backend: ripgrep   # ripgrep | qmd（D4 实现 qmd 适配）
+  limit_default: 8
+
+device:
+  default_id: reachy-desktop-01
+
+ingest:
+  default_kind: concept   # concept | entity | comparison | archived_query
+
+# D6 — 何时提示沉淀（默认静默，US-4）
+precipitate:
+  enabled: true
+  offer_after_turns: 0        # 0 = 不因轮次自动开口；靠 min_assistant_turns 或 /沉淀
+  min_assistant_turns: 3        # 第 3 个助手回答后可提示（US-4）
+  min_user_chars_total: 150
+  min_user_chars_per_turn: 20
+  cooldown_turns: 10            # 提示后 N 轮内不再打扰
+  explicit_commands:
+    - "/沉淀"
+    - "/precipitate"
+    - "/wiki-ingest"
+  offer_message: "这次讨论比较有价值，要不要沉淀到知识库？回复「好」或发送 /沉淀。"
+  # state_path: /tmp/wiki_precipitate_state.json   # 可选：跨进程记住会话
+
+lint:
+  enabled: false   # v1 仅 lint_stub 接口

@@ -1,0 +1,48 @@
+# M4 Reachy 感知层 — 事件化（非 always-on）
+
+backend: mock   # mock | reachy_sdk
+
+device:
+  default_id: reachy-desktop-01
+  robot_name: reachy-mini
+
+reachy:
+  media_backend: default    # default | local | no_media（抓帧勿用 no_media）
+  connect_timeout_s: 15
+  frame_timeout_s: 20
+  probe_media: true         # status 时短时预热摄像头（可关）
+
+capture:
+  jpeg_quality: 92
+  require_opencv: true
+  mock_width: 320
+  mock_height: 240
+
+policy:
+  # 用户开关（US-2：默认关闭，会话内显式开启）
+  camera_enabled: false
+  microphone_enabled: false
+  # 未开启时 capture 返回 policy_denied
+
+store:
+  root: perception_data
+  auto_init: true
+  save_captures: true
+
+bus:
+  # M4 D4：进程内事件总线 + sessions/*.jsonl + events.jsonl
+  skip_default_wire: false
+  memory_observe: false   # true → 每次 describe 写入 MemVerse episode
+
+vision:
+  # M4 D3：按需 VLM（非 always-on）；须 policy.camera_enabled 才抓帧
+  enabled: true
+  on_demand_only: true
+  provider: openai_compatible   # mock | openai_compatible
+  # 阿里云百炼视觉模型：qwen3-vl-plus / qwen3-vl-flash（通用）；
+  # qwen-vl-ocr-latest / qwen3.5-ocr（试卷/手写/公式专用文字识别，纯转写更准）
+  model: qwen3-vl-plus
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1  # 华北2(北京)；新加坡/弗吉尼亚地域不同
+  api_key_env: DASHSCOPE_API_KEY
+  timeout_s: 60
+  max_tokens: 1024

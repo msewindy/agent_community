@@ -1,0 +1,4 @@
+name: agent-proactive
+version: 0.1.0
+description: "Agent community proactive care — quiet hours, dismiss snooze, work-break (US-5)."
+kind: standalone

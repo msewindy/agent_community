@@ -1,0 +1,8 @@
+skill_id: remediation/exam_crunch_plan
+title: 考前冲刺包
+duration_min: 8
+error_codes: []
+procedure: |
+  1. 10 分钟：Top 2 gap 各 2 题（来自 push_queue）。
+  2. 5 分钟：口述易错步骤清单（去分母漏乘、定义域）。
+  3. 5 分钟：看 1 页单元 Wiki 摘要。

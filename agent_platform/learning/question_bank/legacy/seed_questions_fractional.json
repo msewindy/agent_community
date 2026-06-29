@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0.0",
+  "unit_id": "math-8-fractional-equation",
+  "questions": [
+    {
+      "question_id": "q-fe-001",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 x/2 = 3，求 x。",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "两边同乘 2，得 x = 6。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-fe-002",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 (x+1)/3 = 2，求 x。",
+      "answer_type": "exact",
+      "expected_answer": "5",
+      "explanation": "两边同乘 3：x+1=6，x=5。",
+      "default_error_code": "MISS_MULTIPLY_AFTER_DENOM"
+    },
+    {
+      "question_id": "q-fe-003",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 2/x = 1/4（x≠0），求 x。",
+      "answer_type": "exact",
+      "expected_answer": "8",
+      "explanation": "交叉相乘或两边同乘 4x，得 x=8。",
+      "default_error_code": "MISS_MULTIPLY_AFTER_DENOM"
+    },
+    {
+      "question_id": "q-fe-004",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 (2x-1)/5 = 1，求 x。",
+      "answer_type": "exact",
+      "expected_answer": "3",
+      "explanation": "2x-1=5，2x=6，x=3。",
+      "default_error_code": "MISS_MULTIPLY_AFTER_DENOM"
+    },
+    {
+      "question_id": "q-fe-005",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-domain",
+      "stem": "分式 1/(x-2) 有意义时，x 不能等于多少？",
+      "answer_type": "exact",
+      "expected_answer": "2",
+      "explanation": "分母 x-2≠0，故 x≠2。",
+      "default_error_code": "CONCEPT_DOMAIN"
+    },
+    {
+      "question_id": "q-fe-006",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 x/4 + 1 = 3，求 x。",
+      "answer_type": "numeric",
+      "expected_answer": "8",
+      "numeric_tolerance": 0.01,
+      "explanation": "x/4=2，x=8。",
+      "default_error_code": "CALCULATION_ERROR"
+    },
+    {
+      "question_id": "q-fe-007",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 3/(x+1) = 1，求 x。",
+      "answer_type": "exact",
+      "expected_answer": "2",
+      "explanation": "3=x+1，x=2。",
+      "default_error_code": "MISS_MULTIPLY_AFTER_DENOM"
+    },
+    {
+      "question_id": "q-fe-008",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-reading",
+      "stem": "甲数 x 的 1/3 等于 4，列方程并求 x。",
+      "answer_type": "exact",
+      "expected_answer": "12",
+      "explanation": "x/3=4，x=12。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-fe-009",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 (x-2)/4 = 3/2，求 x。",
+      "answer_type": "numeric",
+      "expected_answer": "8",
+      "numeric_tolerance": 0.01,
+      "explanation": "x-2=6，x=8。",
+      "default_error_code": "MISS_MULTIPLY_AFTER_DENOM"
+    },
+    {
+      "question_id": "q-fe-010",
+      "unit_id": "math-8-fractional-equation",
+      "knowledge_point_id": "kp-fractional-clear-denom",
+      "stem": "解方程 5/x = 2/3（x≠0），求 x（可写小数）。",
+      "answer_type": "numeric",
+      "expected_answer": "7.5",
+      "numeric_tolerance": 0.05,
+      "explanation": "交叉相乘：5·3=2x，15=2x，x=7.5。",
+      "default_error_code": "MISS_MULTIPLY_AFTER_DENOM"
+    }
+  ]
+}

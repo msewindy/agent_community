@@ -1,0 +1,58 @@
+# M6 MCP 工具 + L0–L2 治理（C2 + C3）
+
+enabled: true
+
+# 本地沙箱根目录（filesystem 工具仅允许此树下路径）
+sandbox:
+  root: tools_data/sandbox
+  auto_init: true
+
+governance:
+  # 未列出的工具默认级别
+  default_level: L1
+  # 按 server.tool 映射（L0 只读 / L1 低风险写 / L2 需草稿确认）
+  tool_levels:
+    filesystem.list_directory: L0
+    filesystem.read_file: L0
+    filesystem.write_file: L2
+    filesystem.delete_file: L2
+    fetch.fetch: L0
+    obsidian.search: L0
+    obsidian.append_note: L2
+
+draft_gate:
+  enabled: true
+  require_confirmation: true
+  ttl_hours: 48
+
+servers:
+  filesystem:
+    enabled: true
+    transport: stdio   # mock | stdio
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "{sandbox_root}"
+    startup_timeout_s: 120
+  fetch:
+    enabled: true
+    transport: mock    # stdio: command uvx, args: [mcp-server-fetch]
+    # transport: stdio
+    # command: uvx
+    # args: ["mcp-server-fetch"]
+    # startup_timeout_s: 180
+  obsidian:
+    enabled: true
+    transport: mock
+
+store:
+  root: tools_data
+  drafts_dir: drafts
+  events_log: events.log.md
+
+# M6 D4 — L2 草稿确认面板（本地 Web）
+panel:
+  host: 127.0.0.1
+  port: 8766
+  force_mock_transports: false   # true = 面板不拉起 stdio MCP 子进程

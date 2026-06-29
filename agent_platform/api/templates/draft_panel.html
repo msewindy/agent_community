@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>工具草稿确认 · L2</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f7f9; }
+    body { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.35rem; margin-bottom: 0.25rem; }
+    .meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin-bottom: 1rem; }
+    label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 0.25rem; }
+    input, button { padding: 0.45rem 0.6rem; font-size: 0.95rem; }
+    button { cursor: pointer; border: none; border-radius: 6px; color: #fff; }
+    button.approve { background: #16a34a; }
+    button.reject { background: #dc2626; }
+    button.secondary { background: #64748b; }
+    .card { background: #fff; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .card h2 { font-size: 1rem; margin: 0 0 0.5rem; }
+    pre { background: #f1f5f9; padding: 0.6rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .empty { padding: 2rem; text-align: center; color: #666; }
+    .msg { margin: 0.75rem 0; padding: 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+    .msg.ok { background: #dcfce7; }
+    .msg.err { background: #fee2e2; }
+    code { font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>工具草稿确认（L2）</h1>
+  <p class="meta">
+    待确认的破坏性/外发操作 · 本地面板
+    <code>http://127.0.0.1:{{PORT}}</code>
+    · 仅 <strong>pending</strong> 草稿
+  </p>
+
+  <div class="toolbar">
+    <label>session_id（可选筛选）
+      <input id="sessionId" placeholder="hermes-session / voice-session" />
+    </label>
+    <button type="button" id="btnRefresh" class="secondary">刷新</button>
+  </div>
+
+  <div id="message"></div>
+  <div id="drafts"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function showMsg(text, ok) {
+      const el = $("message");
+      el.className = "msg " + (ok ? "ok" : "err");
+      el.textContent = text;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    async function loadDrafts() {
+      const params = new URLSearchParams();
+      const sid = $("sessionId").value.trim();
+      if (sid) params.set("session_id", sid);
+      const res = await fetch("/api/drafts?" + params.toString());
+      if (!res.ok) {
+        showMsg("加载失败: " + res.status, false);
+        return;
+      }
+      const rows = await res.json();
+      renderDrafts(rows);
+      showMsg("待确认 " + rows.length + " 条", true);
+    }
+
+    function renderDrafts(rows) {
+      if (!rows.length) {
+        $("drafts").innerHTML = '<p class="empty">暂无待确认草稿</p>';
+        return;
+      }
+      $("drafts").innerHTML = rows.map((d) => `
+        <div class="card" data-id="${d.draft_id}">
+          <h2><code>${escapeHtml(d.server)}.${escapeHtml(d.tool)}</code></h2>
+          <p>会话 <code>${escapeHtml(d.session_id)}</code> · 级别 ${d.level} · ${d.created_at.slice(0, 19)}</p>
+          <pre>${escapeHtml(d.preview)}</pre>
+          <details><summary>arguments</summary><pre>${escapeHtml(JSON.stringify(d.arguments, null, 2))}</pre></details>
+          <div class="actions">
+            <button type="button" class="approve btn-ok">确认执行</button>
+            <button type="button" class="reject btn-no">拒绝</button>
+          </div>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".btn-ok").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = card.dataset.id;
+          if (!confirm("确认执行此 L2 操作？执行后不可自动撤销。")) return;
+          const res = await fetch("/api/drafts/" + id + "/approve", { method: "POST" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            showMsg("执行失败: " + (data.detail || res.status), false);
+            return;
+          }
+          card.remove();
+          showMsg("已执行 " + id + " — " + (data.message || data.status), true);
+        });
+      });
+
+      document.querySelectorAll(".btn-no").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = card.dataset.id;
+          if (!confirm("拒绝此草稿？")) return;
+          const res = await fetch("/api/drafts/" + id + "/reject", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: "user_rejected_panel" }),
+          });
+          if (!res.ok) {
+            showMsg("拒绝失败: " + res.status, false);
+            return;
+          }
+          card.remove();
+          showMsg("已拒绝 " + id, true);
+        });
+      });
+    }
+
+    $("btnRefresh").addEventListener("click", loadDrafts);
+    loadDrafts();
+    setInterval(loadDrafts, 15000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# M4 perception — install in conda env hermes-agent:
+#   pip install -r agent_platform/requirements-perception.txt
+
+-r requirements-memory.txt
+
+opencv-python-headless>=4.8
+
+# Optional: real Reachy Mini (install when hardware available)
+# reachy_mini[opencv]>=1.0

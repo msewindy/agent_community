@@ -1,0 +1,4 @@
+name: agent-wiki
+version: 0.1.0
+description: "Agent community LLM Wiki — ingest/query via wiki_service (US-4 / M3)."
+kind: standalone

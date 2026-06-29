@@ -1,0 +1,175 @@
+{
+  "schema_version": "1.0.0",
+  "school_stage": "primary",
+  "units": [
+    {
+      "unit_id": "chinese-g2-sentence-basic",
+      "grade": 2,
+      "subject": "语文",
+      "unit_title": "句子与标点基础",
+      "textbook_ref": "人教版·二年级上册（示例）",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-g2-punct-comma",
+          "title": "逗号与句内停顿"
+        },
+        {
+          "knowledge_point_id": "kp-g2-punct-exclaim",
+          "title": "感叹句与感叹号"
+        },
+        {
+          "knowledge_point_id": "kp-g2-punct-period",
+          "title": "句号与陈述句"
+        },
+        {
+          "knowledge_point_id": "kp-g2-punct-question",
+          "title": "问号与疑问句"
+        },
+        {
+          "knowledge_point_id": "kp-g2-sentence-complete",
+          "title": "句子是否完整"
+        },
+        {
+          "knowledge_point_id": "kp-g2-word-order",
+          "title": "语序与句子通顺"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g2-words-collocation",
+      "grade": 2,
+      "subject": "语文",
+      "unit_title": "词语积累与搭配",
+      "textbook_ref": "人教版·二年级上册（示例）",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-g2-adj-noun",
+          "title": "形容词与名词搭配"
+        },
+        {
+          "knowledge_point_id": "kp-g2-measure-word",
+          "title": "量词与名词搭配"
+        },
+        {
+          "knowledge_point_id": "kp-g2-polyphone",
+          "title": "多音字辨析"
+        },
+        {
+          "knowledge_point_id": "kp-g2-synonym-antonym",
+          "title": "近义词与反义词"
+        },
+        {
+          "knowledge_point_id": "kp-g2-word-to-sentence",
+          "title": "用给定词语说一句话"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g2-add-sub-100",
+      "grade": 2,
+      "subject": "数学",
+      "unit_title": "100以内的加法和减法（二）",
+      "textbook_ref": "人教版·二年级上册（示例）",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-g2-add-carry",
+          "title": "进位加法"
+        },
+        {
+          "knowledge_point_id": "kp-g2-add-no-carry",
+          "title": "不进位加法"
+        },
+        {
+          "knowledge_point_id": "kp-g2-add-sub-chain",
+          "title": "连加与连减"
+        },
+        {
+          "knowledge_point_id": "kp-g2-add-sub-mixed",
+          "title": "加减混合运算"
+        },
+        {
+          "knowledge_point_id": "kp-g2-align-digits",
+          "title": "相同数位对齐"
+        },
+        {
+          "knowledge_point_id": "kp-g2-sub-borrow",
+          "title": "退位减法"
+        },
+        {
+          "knowledge_point_id": "kp-g2-sub-no-borrow",
+          "title": "不退位减法"
+        },
+        {
+          "knowledge_point_id": "kp-g2-word-problem-more-less",
+          "title": "求比一个数多几或少几"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g2-multiply-table-2-5",
+      "grade": 2,
+      "subject": "数学",
+      "unit_title": "表内乘法（一）（示例扩展单元）",
+      "textbook_ref": "人教版·二年级上册（示例）",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-g2-mult-meaning",
+          "title": "乘法的意义"
+        },
+        {
+          "knowledge_point_id": "kp-g2-mult-table-2",
+          "title": "2 的乘法口诀"
+        },
+        {
+          "knowledge_point_id": "kp-g2-mult-table-5",
+          "title": "5 的乘法口诀"
+        },
+        {
+          "knowledge_point_id": "kp-g2-mult-word-problem",
+          "title": "乘法应用题"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-mixed-ops",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "混合运算（第一单元）",
+      "textbook_ref": "北师大版·三年级上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-g3-mix-div-add",
+          "title": "除加混合运算（先除后加）"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-div-sub",
+          "title": "除减混合运算（先除后减）"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-expr-meaning",
+          "title": "综合算式情境含义"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-mult-add",
+          "title": "乘加混合运算（先乘后加）"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-mult-sub",
+          "title": "乘减混合运算（先乘后减）"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-parentheses",
+          "title": "小括号运算（先算括号内）"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-same-level",
+          "title": "同级混合运算（从左到右）"
+        },
+        {
+          "knowledge_point_id": "kp-g3-mix-word-problem",
+          "title": "混合运算应用题列式"
+        }
+      ]
+    }
+  ]
+}

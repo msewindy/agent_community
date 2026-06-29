@@ -1,0 +1,4 @@
+name: agent-student
+version: 0.1.0
+description: "Student Jarvis — context/gap/attempt tools + pre_llm CTX injection + AnswerGate."
+kind: standalone

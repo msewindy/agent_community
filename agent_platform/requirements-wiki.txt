@@ -1,0 +1,2 @@
+# M3 Wiki — same runtime deps as M2 memory layer
+-r requirements-memory.txt

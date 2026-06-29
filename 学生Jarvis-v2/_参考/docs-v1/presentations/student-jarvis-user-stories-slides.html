@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>学生 Jarvis · 用户故事（客户验证）</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --text: #e8eaed;
+      --muted: #9aa0a6;
+      --accent: #4a9eff;
+      --accent2: #34a853;
+      --warn: #fbbc04;
+      --border: #2d3748;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+    }
+    .deck { height: 100vh; position: relative; }
+    .slide {
+      display: none;
+      height: 100vh;
+      padding: 48px 64px 80px;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .slide.active { display: flex; }
+    h1 { font-size: 2.4rem; font-weight: 600; margin-bottom: 16px; line-height: 1.3; }
+    h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 20px; color: var(--accent); }
+    p, li { font-size: 1.15rem; line-height: 1.65; color: var(--muted); }
+    li { margin: 10px 0; margin-left: 24px; }
+    .subtitle { font-size: 1.25rem; color: var(--muted); margin-bottom: 32px; }
+    .tag {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-right: 8px;
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .card h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+    .card p { font-size: 0.95rem; }
+    .dialog {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-family: Consolas, monospace;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+    .compare div { padding: 16px; border-radius: 8px; border: 1px solid var(--border); }
+    .compare .bad { border-color: #5c3d3d; }
+    .compare .good { border-color: #2d5a3d; }
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 24px 0;
+      font-size: 0.95rem;
+    }
+    .flow span {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 6px;
+    }
+    .flow .arrow { color: var(--accent); border: none; background: none; padding: 0 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
+    th { background: var(--surface); color: var(--text); }
+    .nav {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      z-index: 100;
+    }
+    .nav button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .nav button:hover { border-color: var(--accent); }
+    .progress {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--accent);
+      transition: width 0.2s;
+    }
+    .page-num {
+      position: fixed;
+      bottom: 28px;
+      left: 32px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .highlight { color: var(--text); }
+    .story-id { color: var(--accent); font-weight: 600; }
+    ul.plain { list-style: none; margin-left: 0; }
+    ul.plain li { margin-left: 0; padding-left: 0; }
+    .question { color: var(--warn); font-size: 1rem; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="page-num" id="pageNum"></div>
+  <div class="deck" id="deck">
+
+    <!-- Slide 1 -->
+    <section class="slide active">
+      <span class="tag">客户验证</span>
+      <span class="tag">2026</span>
+      <h1>学生 Jarvis<br/>用户故事</h1>
+      <p class="subtitle">给潜在客户看：我们打算做什么、您是否需要<br/>按 ← → 翻页 · F11 全屏演示</p>
+      <p>配套文档：docs/学生Jarvis-v1-验证与用户故事.md</p>
+    </section>
+
+    <!-- Slide 2 -->
+    <section class="slide">
+      <h2>产品一句话</h2>
+      <p class="highlight" style="font-size:1.35rem;line-height:1.6;color:var(--text)">
+        把<strong>校本教材</strong>变成可练、可诊、可报告的 AI 学伴：<br/>
+        只在该学的内容里对话 · 用<strong>做题证据</strong>发现漏洞 · 按年级与能力推路径 · 给家长/教师<strong>带证据的学情</strong>
+      </p>
+      <div class="compare" style="margin-top:32px">
+        <div class="bad">
+          <h3 style="color:#ea868f;margin-bottom:8px">不是</h3>
+          <p>通用 ChatGPT · 开放域聊天 · 无证据的「你已经掌握了」</p>
+        </div>
+        <div class="good">
+          <h3 style="color:#7dcea0;margin-bottom:8px">而是</h3>
+          <p>窄域学伴 · 校本对齐 · 规则+证据 · 适龄安全</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3 -->
+    <section class="slide">
+      <h2>四个角色</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>乐乐 · 小学 2 年级</h3>
+          <p>目标：学会、不被难倒<br/>痛点：不知道为什么错</p>
+        </div>
+        <div class="card">
+          <h3>乐乐妈妈 · 家长</h3>
+          <p>目标：放心、看得见进步<br/>痛点：怕 AI 带偏、胡说</p>
+        </div>
+        <div class="card">
+          <h3>王老师 · 教研</h3>
+          <p>目标：校本内容进系统<br/>痛点：没时间盯每个漏洞</p>
+        </div>
+        <div class="card">
+          <h3>张主任 · 校方</h3>
+          <p>目标：可控试点、可审计<br/>痛点：通用 AI 不受控</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4 -->
+    <section class="slide">
+      <h2>一周旅程 · 乐乐的故事</h2>
+      <div class="flow">
+        <span>第0天 校方导入教材</span>
+        <span class="arrow">→</span>
+        <span>第1天 选年级自评</span>
+        <span class="arrow">→</span>
+        <span>第2天 做题见漏洞</span>
+        <span class="arrow">→</span>
+        <span>第3天 20分钟计划</span>
+        <span class="arrow">→</span>
+        <span>第7天 家长看报告</span>
+      </div>
+      <ul style="margin-top:24px">
+        <li>第 0 天：<span class="highlight">校方</span>上传课本 → 知识点树 + 题库</li>
+        <li>第 1 天：<span class="highlight">学生</span>说「二年级、有点粗心」→ Jarvis 确认单元</li>
+        <li>第 2～3 天：错因驱动练题，不是空聊</li>
+        <li>第 7 天：家长收到含「粗心次数」的周报告</li>
+      </ul>
+    </section>
+
+    <!-- Slide 5 -->
+    <section class="slide">
+      <h2>内容从哪来？</h2>
+      <div class="flow">
+        <span>教材 PDF/图片</span>
+        <span class="arrow">→</span>
+        <span>OCR + 提炼</span>
+        <span class="arrow">→</span>
+        <span>知识点树</span>
+        <span class="arrow">→</span>
+        <span>题库 + 讲法</span>
+      </div>
+      <p style="margin-top:24px">年级边界 enforced：二年级学生 <span class="highlight">绝不会</span> 被推六年级题</p>
+      <p class="question">问客户：AI 提炼 + 教师审核，能接受吗？</p>
+    </section>
+
+    <!-- Slide 6 US-01 -->
+    <section class="slide">
+      <h2><span class="story-id">US-01</span> 第一次打开</h2>
+      <p><strong>作为</strong> 二年级学生，<strong>我希望</strong> 选年级并简单自评，<strong>以便</strong> 助理适合我</p>
+      <div class="dialog">乐乐：我是二年级，数学一般，有时候粗心。
+Jarvis：好的乐乐！我们在学「100 以内加减法」。
+        今天先练几题看看？</div>
+      <p class="question">问客户：没有自评、直接聊天，能接受吗？</p>
+    </section>
+
+    <!-- Slide 7 US-02 -->
+    <section class="slide">
+      <h2><span class="story-id">US-02</span> 安全 · 域外拒答</h2>
+      <p><strong>作为</strong> 家长，<strong>我希望</strong> 代写/游戏/无关话题被拒绝</p>
+      <div class="dialog">乐乐：帮我写一篇关于春天的作文。
+Jarvis：我可以陪你练审题和列提纲，但不能代写。
+        我们先做阅读题，还是继续数学？</div>
+      <p class="question">问客户：一律拒答 vs 寒暄再拉回？</p>
+    </section>
+
+    <!-- Slide 8 US-05/06 -->
+    <section class="slide">
+      <h2><span class="story-id">US-05/06</span> 做错题 → 推对题</h2>
+      <p>不是只说「错了」，而是：</p>
+      <div class="dialog">这类题常卡在「进位加」（近7天错3次，有记录）
+下一包题会针对这个漏洞，练会了就不再主攻同类。</div>
+      <p style="margin-top:16px">证据来自 <span class="highlight">做题记录</span>，不是 AI 感觉</p>
+    </section>
+
+    <!-- Slide 9 US-07 -->
+    <section class="slide">
+      <h2><span class="story-id">US-07</span> 答疑对齐课本</h2>
+      <div class="compare">
+        <div class="bad">
+          <h3>无校本内容</h3>
+          <p>像 ChatGPT 随便讲<br/>和学校教的不一样</p>
+        </div>
+        <div class="good">
+          <h3>有校本 Wiki</h3>
+          <p>「课本第 12 页这样写…」<br/>家长/教师更放心</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 10 US-09/10 -->
+    <section class="slide">
+      <h2><span class="story-id">US-09/10</span> 真正个性化</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>逻辑偏弱</h3>
+          <p>推审题、推理题包<br/>不是重复会做的计算</p>
+        </div>
+        <div class="card">
+          <h3>基础薄弱</h3>
+          <p>先巩固基础知识点<br/>再拔高</p>
+        </div>
+      </div>
+      <p style="margin-top:20px">目标：<span class="highlight">懂学生</span>，不是统一脚本刷题</p>
+    </section>
+
+    <!-- Slide 11 US-11 -->
+    <section class="slide">
+      <h2><span class="story-id">US-11</span> 家长周报告</h2>
+      <div class="dialog">乐乐 · 数学 · 第12周
+
+知识  进退位：进步中 ↑   竖式：已掌握
+能力  逻辑推理：待加强
+习惯  粗心/跳步：本周 4 次（见错题 #12 #15）
+建议  每天 15 分钟验算 + 2 道推理题</div>
+      <p class="question">问客户：愿意为这种报告付费吗？</p>
+    </section>
+
+    <!-- Slide 12 -->
+    <section class="slide">
+      <h2>vs 对话型学习机</h2>
+      <table>
+        <tr><th></th><th>普通 AI</th><th>学生 Jarvis</th></tr>
+        <tr><td>交互</td><td>一直聊天</td><td>聊 + 练 + 计划</td></tr>
+        <tr><td>进度</td><td>模型感觉</td><td>attempt 证据</td></tr>
+        <tr><td>内容</td><td>互联网</td><td>校本教材</td></tr>
+        <tr><td>安全</td><td>弱</td><td>域外拒答</td></tr>
+        <tr><td>输出</td><td>口头鼓励</td><td>结构化报告</td></tr>
+      </table>
+    </section>
+
+    <!-- Slide 13 -->
+    <section class="slide">
+      <h2>12 条故事 · 请客户打分</h2>
+      <table>
+        <tr><th>ID</th><th>摘要</th><th>MUST?</th></tr>
+        <tr><td>US-01</td><td>年级+自评入门</td><td>☐</td></tr>
+        <tr><td>US-02</td><td>域外拒答</td><td>☐</td></tr>
+        <tr><td>US-03</td><td>教材→知识点</td><td>☐</td></tr>
+        <tr><td>US-04</td><td>年级边界</td><td>☐</td></tr>
+        <tr><td>US-05～08</td><td>漏洞/推题/答疑/计划</td><td>☐</td></tr>
+        <tr><td>US-09～10</td><td>逻辑/基础路径</td><td>☐</td></tr>
+        <tr><td>US-11～12</td><td>家长报告/教师证据</td><td>☐</td></tr>
+      </table>
+      <p style="margin-top:16px">也可用 Cursor Canvas 交互打分表</p>
+    </section>
+
+    <!-- Slide 14 -->
+    <section class="slide">
+      <h2>开放讨论</h2>
+      <ul class="plain">
+        <li>1. 最吸引您的 3 条故事？最不能接受的 1 条？</li>
+        <li>2. 首发学段：小学低 / 小学全 / 初中？</li>
+        <li>3. 谁付费：家长 / 学校 / 渠道？</li>
+        <li>4. 形态：App / 小程序 / 校内部署？</li>
+        <li>5. 与现有产品比，您会换吗？</li>
+      </ul>
+      <p style="margin-top:32px;color:var(--muted);font-size:0.95rem">
+        说明：本故事描述目标产品，用于验证需求是否合适；当前研发约 25%～35% 实现度。
+      </p>
+    </section>
+
+    <!-- Slide 15 -->
+    <section class="slide">
+      <h1>谢谢</h1>
+      <p class="subtitle">欢迎反馈 MUST / 可选 / 不需要</p>
+      <p>文档：docs/学生Jarvis-v1-验证与用户故事.md</p>
+    </section>
+  </div>
+
+  <div class="nav">
+    <button type="button" id="prev">← 上一页</button>
+    <button type="button" id="next">下一页 →</button>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll(".slide");
+    let idx = 0;
+    const total = slides.length;
+    const progress = document.getElementById("progress");
+    const pageNum = document.getElementById("pageNum");
+
+    function show(i) {
+      idx = Math.max(0, Math.min(i, total - 1));
+      slides.forEach((s, n) => s.classList.toggle("active", n === idx));
+      progress.style.width = ((idx + 1) / total * 100) + "%";
+      pageNum.textContent = (idx + 1) + " / " + total;
+    }
+
+    document.getElementById("prev").onclick = () => show(idx - 1);
+    document.getElementById("next").onclick = () => show(idx + 1);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); show(idx + 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); show(idx - 1); }
+    });
+    show(0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# M1 voice pipeline defaults (override via env or CLI)
+
+tts:
+  zh_voice: zh-CN-XiaoxiaoNeural
+  en_voice: en-US-AriaNeural
+
+vad:
+  sample_rate: 16000
+  threshold: 0.5
+  min_silence_ms: 300
+  speech_pad_ms: 30
+
+mic:
+  device: null  # null = system default
+  record_seconds: 5
+
+wake:
+  model: alexa
+  models: [alexa]
+  threshold: 0.5
+  listen_timeout_s: 30
+
+asr:
+  whisper_size: base
+  funasr_model: paraformer-zh
+  device: auto
+
+barge_in:
+  enabled: true
+  speech_frames: 3
+
+hermes:
+  provider: deepseek
+  model: deepseek-chat
+
+perception:
+  # M4 D4：语音轮次前按需视觉（US-2）
+  enabled: true
+  auto_enable_camera_in_session: true
+  memory_observe: false
+
+proactive:
+  # M5 D4：主动关怀（US-5）
+  enabled: true
+  auto_feedback_on_dismiss: true
+  auto_parse_work_minutes: true
+  nudge_after_work_report: true

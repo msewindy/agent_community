@@ -1,0 +1,8 @@
+skill_id: remediation/socratic_hint_flow
+title: 苏格拉底式提示
+duration_min: 7
+error_codes: []
+procedure: |
+  1. 不直接给答案，先问：「这一步你想两边同乘什么？」
+  2. 若卡住，给二选一提示（乘左边还是整式两边）。
+  3. 学生答对一步后再进入下一步，最多 3 轮提示。

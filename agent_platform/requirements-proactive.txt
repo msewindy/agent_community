@@ -1,0 +1,4 @@
+# M5 proactive — install in conda env hermes-agent:
+#   pip install -r agent_platform/requirements-proactive.txt
+
+-r requirements-memory.txt

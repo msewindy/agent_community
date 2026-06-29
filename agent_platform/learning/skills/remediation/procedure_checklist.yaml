@@ -1,0 +1,12 @@
+skill_id: remediation/procedure_checklist
+title: 步骤核对清单
+duration_min: 10
+error_codes:
+  - MISS_MULTIPLY_AFTER_DENOM
+  - PROCEDURE_ERROR
+  - CALCULATION_ERROR
+procedure: |
+  1. 写方程并圈出所有含未知数的分母。
+  2. 去分母：两边同乘「各分母的最小公倍数」，逐项检查是否漏乘常数项。
+  3. 解整式方程后，代入原分母检验定义域。
+  4. 用 push_queue 推的 2～3 题连做，每题先口述步骤再写。

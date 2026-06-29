@@ -1,0 +1,4 @@
+name: agent-memverse
+version: 0.1.0
+description: "Agent community MemVerse memory - write/search/delete via memory_service (US-3/US-7)."
+kind: standalone

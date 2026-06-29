@@ -1,0 +1,36 @@
+"""Load agent_platform/config/mcp.yaml."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import yaml
+
+_CONFIG_PATH = Path(__file__).resolve().parents[1] / "config" / "mcp.yaml"
+
+
+def project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def load_mcp_config() -> dict:
+    with open(_CONFIG_PATH, encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def resolve_store_root(cfg: dict | None = None) -> Path:
+    cfg = cfg or load_mcp_config()
+    raw = (cfg.get("store") or {}).get("root", "tools_data")
+    p = Path(raw)
+    if not p.is_absolute():
+        p = project_root() / p
+    return p.resolve()
+
+
+def resolve_sandbox_root(cfg: dict | None = None) -> Path:
+    cfg = cfg or load_mcp_config()
+    raw = (cfg.get("sandbox") or {}).get("root", "tools_data/sandbox")
+    p = Path(raw)
+    if not p.is_absolute():
+        p = project_root() / p
+    return p.resolve()

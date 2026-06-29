@@ -1,0 +1,30 @@
+# MemVerse v1.1.0 — M2 D1
+# 数据目录挂到 /tmp，避免 /home 磁盘满（曾 ~99%）
+#
+# 启动（从仓库根目录）:
+#   source agent_platform/deploy/memverse/env.sh
+#   docker compose -f agent_platform/deploy/memverse/docker-compose.yml up -d
+#
+# 停止:
+#   docker compose -f agent_platform/deploy/memverse/docker-compose.yml down
+
+services:
+  memverse:
+    # 官方镜像仅 arm64；amd64 本机请先构建：
+    #   cd research_repos/MemVerse && docker build -t memverse-local:amd64 .
+    image: ${MEMVERSE_IMAGE:-memverse-local:amd64}
+    container_name: memverse
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "5250:5250"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.deepseek.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-chat}
+      OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      LOG_DIR: /tmp/memverse_logs
+    volumes:
+      # 勿整目录挂载 MemoryKB，会遮蔽镜像内 User_Conversation 等模块导致启动失败。
+      # 持久化数据（D4+）：仅挂载可写子目录，首次需从容器 cp 种子数据到宿主机。
+      - /tmp/memverse_logs:/tmp/memverse_logs

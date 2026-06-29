@@ -1,0 +1,4 @@
+name: agent-perception
+version: 0.1.0
+description: "Agent community Reachy perception — on-demand VLM describe (US-2 / M4)."
+kind: standalone

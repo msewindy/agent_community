@@ -1,0 +1,74 @@
+# C7 evolution Phase 1 — local dev
+backend: json_store
+store:
+  root: skills_data
+  experiences_file: experiences.jsonl
+  curriculum_log_file: curriculum_log.jsonl
+  skills_dir: skills
+
+extract:
+  min_user_chars: 8
+  min_assistant_chars: 12
+  skip_complexity: trivial
+  blacklist_topics:
+    - 闲聊
+    - general
+    - other
+
+synthesize:
+  min_experiences_per_skill: 3
+  min_shared_keywords: 2
+  min_confidence: 0.35
+
+orchestrator:
+  l2_every_n_experiences: 3
+
+recall:
+  top_k: 5
+
+# C7 Phase 3 — LLM + lifecycle + M7 bridge
+phase3:
+  extract_mode: auto      # rules | llm | auto
+  synthesize_mode: auto   # rules | llm | auto
+
+llm:
+  timeout_s: 30
+  max_tokens: 800
+
+lifecycle:
+  promote_after_uses: 3
+  demote_on_correction: 0.15
+  deprecate_on_correction: true
+
+l5:
+  correction_keywords:
+    - 不对
+    - 错了
+    - 纠正
+    - 记错
+    - 应该用
+    - 不是
+    - 别用
+    - 更正
+    - incorrect
+    - wrong
+    - correction
+
+bridge:
+  m7_enabled: true
+  post_llm_detect_correction: true
+
+# C7 Phase 4 — Curriculum (Voyager-style next practice)
+phase4:
+  curriculum_enabled: true
+  curriculum_mode: auto       # rules | llm | auto
+  inject_in_pre_llm: true
+  inject_when_no_recall: true
+  inject_always: false
+  max_suggestions: 3
+  min_experiences_for_gap: 2
+  log_curriculum: true
+  skip_topics:
+    - general
+    - correction
+    - 闲聊
