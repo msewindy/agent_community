@@ -293,6 +293,35 @@
       hint.textContent = '已停止 · 可以继续问啦';
     }
 
+    const WAIT_MSGS = ['小贾在想…', '正在回忆学过的内容…', '马上就好…'];
+
+    async function consumeChatStream(res, reqId, onDelta) {
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let sessionOut = null;
+      let streamError = null;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (reqId !== chatRequestId) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n');
+        buffer = parts.pop() || '';
+        for (const line of parts) {
+          if (!line.startsWith('data: ')) continue;
+          let data;
+          try { data = JSON.parse(line.slice(6)); } catch (_) { continue; }
+          if (data.delta) onDelta(data.delta);
+          if (data.done) {
+            sessionOut = data.session_id || sessionOut;
+            if (data.error && data.error !== 'cancelled') streamError = data.error;
+          }
+        }
+      }
+      return { session_id: sessionOut, error: streamError };
+    }
+
     async function sendMessage(overrideText) {
       const text = (overrideText != null ? overrideText : msg.value).trim();
       if (!text) return;
@@ -312,10 +341,53 @@
 
       typingEl = addBubble('小贾在想…', 'jarvis');
       typingEl.classList.add('typing');
+      let waitIdx = 0;
+      const waitTimer = setInterval(() => {
+        if (!typingEl || typingEl.querySelector('.bubble')?.dataset.streaming === '1') return;
+        const b = typingEl.querySelector('.bubble');
+        if (!b) return;
+        waitIdx = (waitIdx + 1) % WAIT_MSGS.length;
+        b.textContent = WAIT_MSGS[waitIdx];
+      }, 3500);
+
+      let fullReply = '';
+      const payload = { message: text, session_id: sessionId };
+      if (visionId) payload.vision_id = visionId;
 
       try {
-        const payload = { message: text, session_id: sessionId };
-        if (visionId) payload.vision_id = visionId;
+        let data = null;
+        const streamRes = await fetch('/api/chat/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        if (reqId !== chatRequestId) return;
+        if (streamRes.ok && streamRes.body) {
+          const bubble = typingEl.querySelector('.bubble');
+          if (bubble) {
+            bubble.dataset.streaming = '1';
+            bubble.textContent = '';
+            bubble.style.fontStyle = 'normal';
+          }
+          typingEl.classList.remove('typing');
+          const streamResult = await consumeChatStream(streamRes, reqId, (delta) => {
+            fullReply += delta;
+            if (bubble) bubble.textContent = fullReply;
+            chat.scrollTop = chat.scrollHeight;
+          });
+          if (streamResult.session_id) sessionId = streamResult.session_id;
+          if (streamResult.error && !fullReply) throw new Error(streamResult.error);
+          if (fullReply) {
+            if (typingEl) { typingEl.remove(); typingEl = null; }
+            const made = addJarvisReply(fullReply);
+            if (autoSpeak && lastInputWasVoice && made && made.btn) {
+              playText(fullReply, made.btn);
+            }
+            return;
+          }
+        }
+
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -329,11 +401,10 @@
           const err = await res.json().catch(() => ({}));
           addBubble('呜，小贾出了点小问题：' + (err.detail || res.status), 'jarvis');
         } else {
-          const data = await res.json();
+          data = await res.json();
           sessionId = data.session_id || sessionId;
           const replyText = data.reply || '（小贾没说话）';
           const made = addJarvisReply(replyText);
-          // 语音进 → 语音出；打字进 → 只出文字（想听点 🔈）
           if (autoSpeak && lastInputWasVoice && made && made.btn) {
             playText(replyText, made.btn);
           }
@@ -344,6 +415,7 @@
         if (typingEl) { typingEl.remove(); typingEl = null; }
         addBubble('网络好像断了，等会儿再试试好吗？', 'jarvis');
       } finally {
+        clearInterval(waitTimer);
         if (reqId === chatRequestId) {
           chatAbortController = null;
           busy = false;

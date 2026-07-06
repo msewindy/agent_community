@@ -22,15 +22,23 @@ pilot:
   units:
     math: math-g3-mixed-ops
     chinese: chinese-g2-sentence-basic
+    english: english-g3-starter
 
 kp_catalog:
   path: agent_platform/learning/catalog/kp_catalog.json
+
+# P1-4 — KP 批准入库时同步 Wiki 讲解页；启动时为试点单元补建缺失页
+kp_wiki:
+  enabled: true
+  sync_on_approve: true
+  bootstrap_pilot_units: true
 
 question_bank:
   seed_paths:
     - agent_platform/learning/question_bank/seed_questions_g2_math.json
     - agent_platform/learning/question_bank/seed_questions_g2_chinese.json
     - agent_platform/learning/question_bank/seed_questions_g3_math_mixed_ops.json
+    - agent_platform/learning/question_bank/seed_questions_g3_english_starter.json
   sqlite_path: agent_platform/learning/question_bank/questions.db
 
 grader:
@@ -55,9 +63,15 @@ hermes:
   default_student_id: g2-stu-01   # 家庭 Alpha：升三年级后沿用原 id
   inject_system_rules: true
 
-# 数学 + 语文错因（合并 lookup；gap_id 全局唯一）
+students:
+  profiles:
+    g2-stu-01:
+      memory_device_id: reachy-desktop-01
+      # preferred_name 由 onboarding / M2 user_profile 写入，不在此写死
+
+# 数学 + 语文 + 英语错因（合并 lookup；gap_id 全局唯一）
 error_taxonomy:
-  version: "2.0.0-g2"
+  version: "2.1.0-tri-subject"
   codes:
     CARRY_ERROR:
       title: 进位错误
@@ -89,6 +103,24 @@ error_taxonomy:
       title: 语序不通顺
       knowledge_point_id: kp-g2-word-order
       subject: 语文
+    SPELLING_ERROR:
+      title: 单词拼写错误
+      knowledge_point_id: kp-en-g3-spelling-basic
+      subject: 英语
+      behavior_tags: [粗心]
+    GRAMMAR_ERROR:
+      title: 句型语法错误
+      knowledge_point_id: kp-en-g3-grammar-basic
+      subject: 英语
+    VOCAB_GAP:
+      title: 词汇量不足
+      knowledge_point_id: kp-en-g3-vocab-basic
+      subject: 英语
+    EN_READING_ERROR:
+      title: 英语阅读理解错误
+      knowledge_point_id: kp-en-g3-reading-basic
+      subject: 英语
+      behavior_tags: [审题]
 
 mastery:
   required_streak: 3
@@ -112,17 +144,17 @@ evolution:
 learning_dimensions:
   - id: basic_knowledge
     title: 基础知识
-    signal_error_codes: [CALCULATION_ERROR, PROCEDURE_ERROR, CARRY_ERROR, BORROW_ERROR]
+    signal_error_codes: [CALCULATION_ERROR, PROCEDURE_ERROR, CARRY_ERROR, BORROW_ERROR, SPELLING_ERROR, VOCAB_GAP, GRAMMAR_ERROR]
   - id: logic_reasoning
     title: 逻辑推理
-    signal_error_codes: [READING_ERROR, WORD_ORDER_ERROR]
+    signal_error_codes: [READING_ERROR, WORD_ORDER_ERROR, GRAMMAR_ERROR, EN_READING_ERROR]
   - id: carelessness
     title: 粗心
-    signal_error_codes: [CALCULATION_ERROR]
+    signal_error_codes: [CALCULATION_ERROR, SPELLING_ERROR]
     behavior_tags: [粗心]
   - id: reading_care
     title: 审题
-    signal_error_codes: [READING_ERROR]
+    signal_error_codes: [READING_ERROR, EN_READING_ERROR]
     behavior_tags: [审题]
 
 student_safety:
@@ -148,6 +180,7 @@ seed:
     - math-g3-mixed-ops
     - math-g2-add-sub-100
     - chinese-g2-sentence-basic
+    - english-g3-starter
 
 web_panel:
   host: "127.0.0.1"

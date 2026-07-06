@@ -7,17 +7,21 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
+from urllib.parse import quote
 
 from agent_platform.learning._config import load_student_learning_config, repo_root
-from agent_platform.learning.kp_catalog import KpCatalogService
+from agent_platform.learning.student_identity import resolve_student_display_name
+from agent_platform.learning.bootstrap_family_alpha import ensure_family_alpha_content
+from agent_platform.learning.kp_catalog import KpCatalogService, get_kp_catalog_service
 from agent_platform.learning.kp_catalog_diff import CatalogTree, ConflictKind
 from agent_platform.learning.kp_ingest_review import (
     KpIngestReviewService,
     ResolutionAction,
     allowed_actions_for_conflict,
 )
+from agent_platform.learning.learning_dashboard import LearningDashboardOut, LearningDashboardService
 from agent_platform.learning.learning_profile import LearningProfileOut, LearningProfileService
 from agent_platform.learning.photo_triage import PhotoTriageService
 from agent_platform.learning.kp_review_display import (
@@ -26,14 +30,77 @@ from agent_platform.learning.kp_review_display import (
     build_kb_comparison,
     localize_conflict,
 )
+from agent_platform.learning.kp_template import (
+    KP_FORMAT_GUIDE_BRIEF,
+    KP_MD_TEMPLATE,
+    KP_QUESTIONS_ONLY_TEMPLATE,
+    QUESTIONS_FORMAT_GUIDE_BRIEF,
+)
 from agent_platform.learning.parent_report import ParentReportService
+from agent_platform.learning.question_bank_ingest import question_bank_overview
 from agent_platform.learning.student_context import StudentContextService
 from agent_platform.learning.textbook_ingest import IngestJobStatus, TextbookIngestService
+from agent_platform.learning.unit_switch import UnitSwitchService
+from agent_platform.learning.kp_catalog_export import KpCatalogExportService
 
 _TEMPLATES = Path(__file__).parent / "templates"
-_PANEL_HTML = (_TEMPLATES / "student_panel.html").read_text(encoding="utf-8")
+_PANEL_SHELL = (_TEMPLATES / "panel_shell.html").read_text(encoding="utf-8")
+_PANEL_CSS = (_TEMPLATES / "panel_shell.css").read_text(encoding="utf-8")
+_PANEL_HTML = (_TEMPLATES / "student_overview.html").read_text(encoding="utf-8")
+_LEARNING_DETAIL_HTML = (_TEMPLATES / "learning_detail.html").read_text(encoding="utf-8")
+_EXERCISE_HUB_HTML = (_TEMPLATES / "exercise_hub.html").read_text(encoding="utf-8")
+_WEEKLY_REPORT_HTML = (_TEMPLATES / "weekly_report.html").read_text(encoding="utf-8")
 _KP_REVIEW_HTML = (_TEMPLATES / "kp_review.html").read_text(encoding="utf-8")
 _KP_CATALOG_HTML = (_TEMPLATES / "kp_catalog.html").read_text(encoding="utf-8")
+_QUESTION_BANK_HTML = (_TEMPLATES / "question_bank.html").read_text(encoding="utf-8")
+
+_NAV = (
+    ("/", "overview", "学情总览", "📊"),
+    ("/learning-detail", "detail", "学情详情", "📖"),
+    ("/weekly-report", "report", "学习周报", "📋"),
+    ("/kp-catalog", "catalog", "浏览知识库", "📚"),
+    ("/exercises", "exercises", "习题处理", "📝"),
+    ("/kp-review", "review", "知识点入库", "📥"),
+)
+
+
+def _render_sidebar(active: str) -> str:
+    parts = []
+    for href, key, label, icon in _NAV:
+        cls = "nav-item active" if key == active else "nav-item"
+        parts.append(f'<a href="{href}" class="{cls}"><span class="nav-icon">{icon}</span>{label}</a>')
+    return "\n".join(parts)
+
+
+def _panel_page(
+    content: str,
+    *,
+    title: str,
+    active: str,
+    body_class_page: str = "",
+    extra_head: str = "",
+) -> str:
+    return (
+        _PANEL_SHELL.replace("{{INLINE_CSS}}", _PANEL_CSS)
+        .replace("{{SIDEBAR}}", _render_sidebar(active))
+        .replace("{{PAGE_TITLE}}", title)
+        .replace("{{CONTENT}}", content)
+        .replace("{{BODY_CLASS}}", "")
+        .replace("{{BODY_CLASS_PAGE}}", body_class_page)
+        .replace("{{EXTRA_HEAD}}", extra_head)
+        .replace("{{EXTRA_SCRIPT}}", "")
+    )
+
+
+def _attachment_disposition(filename: str) -> str:
+    ascii_name = re.sub(r"[^A-Za-z0-9._-]", "_", filename) or "kp-export.kp.md"
+    return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
+
+
+class StudentSummaryOut(BaseModel):
+    student_id: str
+    display_name: str
+    grade: str = ""
 
 
 class CatalogInfoOut(BaseModel):
@@ -60,6 +127,9 @@ class ParentReportOut(BaseModel):
     correct_rate: Optional[float] = None
     dimension_scores: list[dict] = Field(default_factory=list)
     evidence: list[dict] = Field(default_factory=list)
+    volume: Optional[dict] = None
+    evaluation: Optional[dict] = None
+    recommendations: list[dict] = Field(default_factory=list)
 
 
 class IngestJobSummary(BaseModel):
@@ -93,7 +163,7 @@ class RejectIn(BaseModel):
 
 
 class SubmitSampleIn(BaseModel):
-    sample_id: str = Field(pattern="^(math-g2|chinese-g2)$")
+    sample_id: str = Field(pattern="^(math-g2|chinese-g2|math-g3)$")
 
 
 class TriageResolveIn(BaseModel):
@@ -106,9 +176,14 @@ class TriageDropIn(BaseModel):
     note: Optional[str] = None
 
 
+class LearningUnitSwitchIn(BaseModel):
+    unit_id: str = Field(min_length=1)
+
+
 _KP_SAMPLES: dict[str, Path] = {
     "math-g2": repo_root() / "docs" / "content" / "数学-二年级.kp.md",
     "chinese-g2": repo_root() / "docs" / "content" / "语文-二年级.kp.md",
+    "math-g3": repo_root() / "docs" / "content" / "数学-三年级.kp.md",
 }
 
 
@@ -189,36 +264,163 @@ def create_app(
 
     report = report_svc or ParentReportService(data_root=data_root)
     ctx_svc = context_svc or StudentContextService(data_root=data_root)
-    catalog = catalog_svc or KpCatalogService()
+    catalog = catalog_svc or get_kp_catalog_service()
     ingest = ingest_svc or TextbookIngestService(data_root=data_root)
     review = review_svc or KpIngestReviewService(ingest_svc=ingest, catalog_svc=catalog)
     profile_svc = LearningProfileService(data_root=data_root, catalog=catalog)
     triage_svc = PhotoTriageService(data_root=data_root, catalog=catalog)
+    unit_switch_svc = UnitSwitchService(data_root=data_root, catalog_svc=catalog)
+    dashboard_svc = LearningDashboardService(
+        data_root=data_root,
+        context_svc=ctx_svc,
+        catalog=catalog,
+        config=cfg,
+    )
+    kp_export_svc = KpCatalogExportService(catalog=catalog)
+    bootstrap_report = ensure_family_alpha_content()
 
-    app = FastAPI(title="Student Jarvis Panel", version="0.3.0-p1-web-e2e")
+    app = FastAPI(title="Student Jarvis Panel", version="0.4.0-family-alpha-p0")
 
     def _html_vars(html: str) -> str:
         return html.replace("{{DATA_ROOT}}", root_label)
 
+    def _render_page(fragment: str, *, title: str, active: str, body_class_page: str = "") -> str:
+        return _html_vars(_panel_page(fragment, title=title, active=active, body_class_page=body_class_page))
+
     @app.get("/health")
-    def health() -> dict[str, str | int]:
+    def health() -> dict[str, str | int | dict]:
         return {
             "status": "ok",
             "grade_pilot": int((cfg.get("pilot") or {}).get("grade_level", 2)),
             "port": int(panel_cfg.get("port", 8770)),
+            "bootstrap": bootstrap_report.to_dict(),
         }
 
     @app.get("/", response_class=HTMLResponse)
     def panel_page() -> str:
-        return _html_vars(_PANEL_HTML)
+        return _render_page(_PANEL_HTML, title="学情总览", active="overview")
+
+    @app.get("/learning-detail", response_class=HTMLResponse)
+    def learning_detail_page() -> str:
+        return _render_page(_LEARNING_DETAIL_HTML, title="学情详情", active="detail")
+
+    @app.get("/exercises", response_class=HTMLResponse)
+    def exercises_page() -> str:
+        return _render_page(_EXERCISE_HUB_HTML, title="习题处理", active="exercises")
+
+    @app.get("/weekly-report", response_class=HTMLResponse)
+    def weekly_report_page() -> str:
+        return _render_page(_WEEKLY_REPORT_HTML, title="学习周报", active="report")
 
     @app.get("/kp-review", response_class=HTMLResponse)
     def kp_review_page() -> str:
-        return _html_vars(_KP_REVIEW_HTML)
+        return _render_page(_KP_REVIEW_HTML, title="知识点入库", active="review", body_class_page="page-body-flush")
 
     @app.get("/kp-catalog", response_class=HTMLResponse)
     def kp_catalog_page() -> str:
-        return _html_vars(_KP_CATALOG_HTML)
+        return _render_page(_KP_CATALOG_HTML, title="浏览知识库", active="catalog")
+
+    @app.get("/question-bank", response_class=HTMLResponse)
+    def question_bank_page() -> str:
+        return _render_page(_EXERCISE_HUB_HTML, title="习题处理", active="exercises")
+
+    @app.get("/api/question-bank/info")
+    def question_bank_info() -> JSONResponse:
+        return JSONResponse(question_bank_overview())
+
+    @app.get("/api/question-bank/format-template")
+    def question_bank_format_template() -> Response:
+        return Response(
+            content=KP_QUESTIONS_ONLY_TEMPLATE.encode("utf-8"),
+            media_type="text/markdown; charset=utf-8",
+            headers={
+                "Content-Disposition": "attachment; filename=kp-questions-only.kp.md",
+            },
+        )
+
+    @app.get("/api/question-bank/format-guide", response_class=PlainTextResponse)
+    def question_bank_format_guide() -> str:
+        return QUESTIONS_FORMAT_GUIDE_BRIEF
+
+    @app.post("/api/question-bank/upload")
+    async def question_bank_upload(file: UploadFile = File(...)) -> JSONResponse:
+        """Upload questions-only `.kp.md` → same ingest job pipeline."""
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="missing filename")
+        content = await file.read()
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError as e:
+            raise HTTPException(status_code=400, detail="file must be UTF-8 text") from e
+
+        from agent_platform.learning.kp_document_parser import KpDocumentParseError, parse_kp_document_text
+
+        try:
+            draft = parse_kp_document_text(text, source_path=file.filename)
+        except KpDocumentParseError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        if not draft.has_questions():
+            raise HTTPException(status_code=400, detail="document has no ## 练习题 section")
+        if draft.has_knowledge_points():
+            raise HTTPException(
+                status_code=400,
+                detail="此入口仅接受「仅练习题」文档；含知识点请用「知识点入库」",
+            )
+
+        upload_dir = data_root / "_kp_uploads"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        from agent_platform.learning.contracts import utc_now
+
+        stamp = utc_now().strftime("%Y%m%d-%H%M%S")
+        safe_name = re.sub(r"[^\w.\-一-龥]", "_", file.filename)
+        dest = upload_dir / f"{stamp}-{safe_name}"
+        dest.write_text(text, encoding="utf-8")
+
+        try:
+            job = ingest.submit_kp_document(dest)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        job.client_filename = file.filename
+        job.client_source_path = file.filename
+        ingest._save(job)  # noqa: SLF001
+        snapshot = review.build_snapshot(job)
+        return JSONResponse(
+            {
+                "job": _job_summary(job).model_dump(mode="json"),
+                "blocking_unresolved": snapshot.blocking_unresolved,
+                "redirect_review": f"/kp-review?job={job.job_id}",
+            }
+        )
+
+    @app.get("/api/kp/format-template")
+    def kp_format_template() -> Response:
+        """Download blank `.kp.md` template for parents."""
+        return Response(
+            content=KP_MD_TEMPLATE.encode("utf-8"),
+            media_type="text/markdown; charset=utf-8",
+            headers={
+                "Content-Disposition": "attachment; filename=kp-template.kp.md",
+            },
+        )
+
+    @app.get("/api/kp/format-guide", response_class=PlainTextResponse)
+    def kp_format_guide() -> str:
+        return KP_FORMAT_GUIDE_BRIEF
+
+    @app.post("/api/kp/catalog/reload")
+    def catalog_reload() -> JSONResponse:
+        """Reload kp_catalog.json from disk into this panel process."""
+        catalog.reload()
+        cat = catalog.catalog
+        kp_count = sum(len(u.knowledge_points) for u in cat.units)
+        return JSONResponse(
+            {
+                "success": True,
+                "unit_count": len(cat.units),
+                "knowledge_point_count": kp_count,
+                "hint": "孩子端 8771 会在下次提问时自动加载新 catalog，一般无需重启。",
+            }
+        )
 
     @app.get("/api/kp/catalog/info", response_model=CatalogInfoOut)
     def catalog_info() -> CatalogInfoOut:
@@ -238,13 +440,60 @@ def create_app(
             subjects=subjects,
         )
 
-    @app.get("/api/students", response_model=list[str])
-    def list_students() -> list[str]:
+    @app.get("/api/kp/catalog/export")
+    def export_kp_catalog(
+        subject: str = Query(..., min_length=1),
+        grade: int = Query(..., ge=1, le=6),
+        unit_id: Optional[str] = Query(None),
+        include_questions: bool = Query(True),
+    ) -> Response:
+        """Export catalog slice to downloadable `.kp.md` for offline edit."""
+        try:
+            result = kp_export_svc.export(
+                subject=subject,
+                grade=grade,
+                unit_id=unit_id,
+                include_questions=include_questions,
+            )
+        except KeyError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        headers = {
+            "Content-Disposition": _attachment_disposition(result.filename),
+            "X-Export-Units": ",".join(result.unit_ids),
+            "X-Export-Kp-Count": str(result.knowledge_point_count),
+            "X-Export-Question-Count": str(result.question_count),
+        }
+        return Response(
+            content=result.content.encode("utf-8"),
+            media_type="text/markdown; charset=utf-8",
+            headers=headers,
+        )
+
+    @app.get("/api/students", response_model=list[StudentSummaryOut])
+    def list_students() -> list[StudentSummaryOut]:
         if not data_root.is_dir():
             return []
-        return sorted(
-            p.name for p in data_root.iterdir() if p.is_dir() and (p / "context.json").is_file()
-        )
+        out: list[StudentSummaryOut] = []
+        for p in sorted(data_root.iterdir()):
+            if not p.is_dir() or not (p / "context.json").is_file():
+                continue
+            sid = p.name
+            try:
+                ctx = ctx_svc.get(sid)
+                out.append(
+                    StudentSummaryOut(
+                        student_id=sid,
+                        display_name=resolve_student_display_name(
+                            sid, cfg, ctx=ctx, data_root=data_root
+                        ),
+                        grade=ctx.curriculum.grade or "",
+                    )
+                )
+            except FileNotFoundError:
+                continue
+        return out
 
     @app.get("/api/students/{student_id}/parent-report", response_model=ParentReportOut)
     def get_parent_report(
@@ -308,14 +557,20 @@ def create_app(
     @app.get("/api/kp/ingest/samples")
     def list_kp_samples() -> JSONResponse:
         items = []
+        _sample_meta = {
+            "math-g2": ("数学", 2),
+            "chinese-g2": ("语文", 2),
+            "math-g3": ("数学", 3),
+        }
         for sample_id, path in _KP_SAMPLES.items():
+            subject, grade = _sample_meta.get(sample_id, ("", 0))
             items.append(
                 {
                     "sample_id": sample_id,
                     "filename": path.name,
                     "available": path.is_file(),
-                    "subject": "数学" if sample_id == "math-g2" else "语文",
-                    "grade": 2,
+                    "subject": subject,
+                    "grade": grade,
                 }
             )
         return JSONResponse({"samples": items})
@@ -430,6 +685,8 @@ def create_app(
 
         source = _display_source(job)
         kb_comparison = build_kb_comparison(snapshot.catalog_diff, snapshot.conflict_resolutions)
+        doc_tree = build_document_tree(draft)
+        question_count = sum(len(u.get("questions") or []) for u in doc_tree)
 
         return JSONResponse(
             {
@@ -445,7 +702,11 @@ def create_app(
                 "format_validation": [item.model_dump(mode="json") for item in snapshot.checklist],
                 "parse_warnings": draft.get("parse_warnings") or [],
                 "document_preview": job.extracted_text_preview,
-                "document_content": build_document_tree(draft),
+                "document_content": doc_tree,
+                "question_count": question_count,
+                "questions_only": bool(draft.get("units")) and not any(
+                    (u.get("knowledge_points") or []) for u in draft.get("units") or []
+                ) and question_count > 0,
                 "kb_comparison": kb_comparison,
                 "conflicts": conflicts,
                 "catalog_diff": snapshot.catalog_diff.model_dump(mode="json"),
@@ -499,7 +760,24 @@ def create_app(
             result = review.approve(job_id)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
-        return JSONResponse(result.model_dump(mode="json"))
+        payload = result.model_dump(mode="json")
+        parts: list[str] = []
+        if result.catalog_merged:
+            parts.append("知识点已写入知识库，下次孩子提问时 Jarvis 会自动加载（无需重启 8771）。")
+        if result.questions_imported:
+            parts.append(f"已导入 {result.questions_imported} 道练习题到题库。")
+        if result.wiki_sync.pages_synced:
+            parts.append(f"已同步 {result.wiki_sync.pages_synced} 个知识点的 Wiki 讲解页。")
+        if not parts:
+            parts.append("入库完成。")
+        if result.catalog_merged and not result.questions_imported:
+            parts.append("若新单元要练题，可在同一 .kp.md 中补充 ## 练习题 后再次上传。")
+        elif result.questions_imported and not result.catalog_merged:
+            parts.append("请到学情页「当前学习单元」切换到新单元，让孩子练新题。")
+        elif result.questions_imported:
+            parts.append("请到学情页「当前学习单元」切换到新单元后练题。")
+        payload["post_approve_hint"] = "".join(parts)
+        return JSONResponse(payload)
 
     @app.post("/api/kp/ingest/jobs/{job_id}/reject")
     def reject_job(job_id: str, body: RejectIn) -> JSONResponse:
@@ -510,12 +788,61 @@ def create_app(
             raise HTTPException(status_code=400, detail=str(e)) from e
         return JSONResponse(job.model_dump(mode="json"))
 
-    @app.get("/api/students/{student_id}/learning-profile", response_model=LearningProfileOut)
-    def get_learning_profile(student_id: str) -> LearningProfileOut:
-        """学情总览：知识点掌握档 + 尚未归类的题（同一视图，非独立收件箱页）。"""
+    @app.get("/api/students/{student_id}/learning-unit")
+    def get_learning_unit(student_id: str) -> JSONResponse:
         if not ctx_svc.exists(student_id):
             raise HTTPException(status_code=404, detail=f"student not found: {student_id}")
-        return profile_svc.get_profile(student_id)
+        try:
+            snap = unit_switch_svc.get_snapshot(student_id)
+        except FileNotFoundError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        return JSONResponse(snap.to_dict())
+
+    @app.post("/api/students/{student_id}/learning-unit")
+    def switch_learning_unit(student_id: str, body: LearningUnitSwitchIn) -> JSONResponse:
+        from agent_platform.learning.kp_catalog import GradeBoundaryError
+
+        if not ctx_svc.exists(student_id):
+            raise HTTPException(status_code=404, detail=f"student not found: {student_id}")
+        try:
+            result = unit_switch_svc.switch_active_unit(student_id, body.unit_id)
+        except FileNotFoundError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        except GradeBoundaryError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        return JSONResponse(result.to_dict())
+
+    @app.get("/api/students/{student_id}/learning-dashboard", response_model=LearningDashboardOut)
+    def get_learning_dashboard(student_id: str) -> LearningDashboardOut:
+        if not ctx_svc.exists(student_id):
+            raise HTTPException(status_code=404, detail=f"student not found: {student_id}")
+        try:
+            return dashboard_svc.build(student_id)
+        except FileNotFoundError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+
+    @app.get("/api/students/{student_id}/learning-profile", response_model=LearningProfileOut)
+    def get_learning_profile(
+        student_id: str,
+        unit_id: Optional[str] = None,
+        subject: Optional[str] = Query(None),
+        grade: Optional[int] = Query(None, ge=1, le=6),
+        gap_limit: int = Query(50, ge=0, le=200),
+        include_pending: bool = Query(True),
+    ) -> LearningProfileOut:
+        """学情详情：可按单元过滤；待归类题在习题处理页操作。"""
+        if not ctx_svc.exists(student_id):
+            raise HTTPException(status_code=404, detail=f"student not found: {student_id}")
+        return profile_svc.get_profile(
+            student_id,
+            gap_limit=gap_limit,
+            unit_id=unit_id,
+            subject=subject,
+            grade=grade,
+            include_pending=include_pending,
+        )
 
     @app.post("/api/students/{student_id}/learning-profile/pending/{entry_id}/resolve")
     def resolve_pending_item(

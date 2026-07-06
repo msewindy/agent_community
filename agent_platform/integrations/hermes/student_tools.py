@@ -110,6 +110,12 @@ def _get_bank_svc():
     return _bank_svc
 
 
+def invalidate_question_bank_cache() -> None:
+    """Drop cached QuestionBankService after parent-panel import."""
+    global _bank_svc
+    _bank_svc = None
+
+
 def _get_triage_svc():
     global _triage_svc
     bootstrap_agent_platform()
@@ -286,12 +292,12 @@ def questions_suggest(args: dict, **kwargs) -> str:
         kp_id = (args.get("knowledge_point_id") or "").strip() or None
         limit = int(args.get("limit", 3))
 
-        from agent_platform.learning.kp_catalog import KpCatalogService
+        from agent_platform.learning.kp_catalog import get_kp_catalog_service
         from agent_platform.learning.push_engine import _recent_question_ids
         from agent_platform.learning.store import layout_for, list_attempt_paths, load_attempt
 
         grade_level = ctx.curriculum.grade_level
-        cat = KpCatalogService()
+        cat = get_kp_catalog_service()
         allowed = None
         if grade_level is not None:
             allowed = {u.unit_id for u in cat.list_units(grade_level=grade_level)}
@@ -357,6 +363,23 @@ def question_get(args: dict, **kwargs) -> str:
         return _tool_error(f"question not found: {qid}")
     except Exception as e:
         logger.exception("question_get failed")
+        return _tool_error(str(e))
+
+
+def explain_kp(args: dict, **kwargs) -> str:
+    """Fetch catalog + Wiki teaching context for a knowledge point (P1-4)."""
+    kp_id = (args.get("knowledge_point_id") or "").strip()
+    if not kp_id:
+        return _tool_error("Missing knowledge_point_id")
+    try:
+        from agent_platform.learning.kp_wiki_sync import KpWikiSyncService
+
+        ctx = KpWikiSyncService().fetch_teaching_context(kp_id)
+        if not ctx.get("success"):
+            return _tool_error(ctx.get("error", "explain_kp failed"))
+        return _tool_result(ctx)
+    except Exception as e:
+        logger.exception("explain_kp failed")
         return _tool_error(str(e))
 
 
@@ -600,7 +623,8 @@ ATTEMPT_SUBMIT_FREEFORM_SCHEMA = {
         "Record a REAL homework question that is NOT in the bank (e.g. a word problem the child brought). "
         "Use this instead of attempt_submit when there is no question_id. "
         "You judge correctness and, if wrong, classify error_code from the configured taxonomy "
-        "(e.g. READING_ERROR 审题列式, CARRY_ERROR 进位, BORROW_ERROR 退位, CALCULATION_ERROR 计算失误). "
+        "(e.g. READING_ERROR 审题列式, CARRY_ERROR 进位, SPELLING_ERROR 拼写, GRAMMAR_ERROR 语法, "
+        "VOCAB_GAP 词汇, EN_READING_ERROR 英语阅读). "
         "Do NOT invent error codes."
     ),
     "parameters": {
@@ -715,6 +739,25 @@ QUESTION_GET_SCHEMA = {
     },
 }
 
+EXPLAIN_KP_SCHEMA = {
+    "name": "explain_kp",
+    "description": (
+        "Get teaching context for a knowledge point from catalog + Wiki. "
+        "Call when explaining/teaching a specific KP ('讲讲', '什么是'). "
+        "If has_wiki=false, teach from title/unit context without pretending textbook authority."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "knowledge_point_id": {
+                "type": "string",
+                "description": "KP id from catalog, e.g. kp-g3-mix-mult-add.",
+            },
+        },
+        "required": ["knowledge_point_id"],
+    },
+}
+
 STUDENT_ANSWER_GATE_SCHEMA = {
     "name": "student_answer_gate",
     "description": (
@@ -815,6 +858,14 @@ def register_student_hermes_tools(ctx) -> None:
         emoji="❓",
     )
     ctx.register_tool(
+        name="explain_kp",
+        toolset="agent_student",
+        schema=EXPLAIN_KP_SCHEMA,
+        handler=lambda args, **kw: explain_kp(args, **kw),
+        check_fn=check_student_tools_available,
+        emoji="📖",
+    )
+    ctx.register_tool(
         name="student_answer_gate",
         toolset="agent_student",
         schema=STUDENT_ANSWER_GATE_SCHEMA,
@@ -840,6 +891,6 @@ def register_student_hermes_tools(ctx) -> None:
     )
     logger.info(
         "agent-student: pre_llm hook + student_context_get, gap_map_query, "
-        "attempt_submit, attempt_submit_freeform, questions_suggest, push_queue_peek, question_get, "
+        "attempt_submit, attempt_submit_freeform, questions_suggest, explain_kp, push_queue_peek, question_get, "
         "student_answer_gate, student_safety_check, study_plan_generate"
     )

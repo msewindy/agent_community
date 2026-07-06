@@ -1,0 +1,236 @@
+<div class="toolbar">
+  <label>学生 <select id="studentSelect"><option value="">加载中…</option></select></label>
+</div>
+<div class="filter-bar card">
+  <label>学科 <select id="filterSubject"></select></label>
+  <label>年级 <select id="filterGrade"></select></label>
+  <label>单元 <select id="filterUnit"></select></label>
+  <button type="button" id="btnLoad">加载</button>
+</div>
+<div id="message"></div>
+<div id="unitSummary" class="card hidden"></div>
+<div id="gapsCard"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let tree = null;
+  let studentGradeLevel = 3;
+  let currentUnitId = null;
+  const urlPrefs = new URLSearchParams(location.search);
+
+  function showMsg(text, ok) {
+    const el = $("message");
+    if (!text) { el.textContent = ""; el.className = ""; return; }
+    el.className = "msg " + (ok ? "ok" : "err");
+    el.textContent = text;
+  }
+
+  function currentStudentId() { return $("studentSelect").value.trim(); }
+
+  function statusBadge(status) {
+    const map = { active: "薄弱", improving: "改善中", mastered: "已掌握", dormant: "休眠" };
+    const cls = status === "mastered" ? "ok" : "weak";
+    return `<span class="badge ${cls}">${map[status] || status}</span>`;
+  }
+
+  function allSubjects() {
+    return (tree?.subjects || []).map(s => s.subject);
+  }
+
+  function findUnitMeta(unitId) {
+    let found = null;
+    (tree?.subjects || []).forEach(s => (s.grades || []).forEach(g => (g.units || []).forEach(u => {
+      if (u.unit_id === unitId) found = { subject: s.subject, grade: g.grade, unit: u };
+    })));
+    return found;
+  }
+
+  function gradesForSubject(subject) {
+    const grades = [];
+    (tree?.subjects || []).forEach(s => {
+      if (s.subject !== subject) return;
+      (s.grades || []).forEach(g => grades.push(g.grade));
+    });
+    return [...new Set(grades)].sort((a, b) => a - b);
+  }
+
+  function unitsFor(subject, grade) {
+    const units = [];
+    (tree?.subjects || []).forEach(s => {
+      if (s.subject !== subject) return;
+      (s.grades || []).forEach(g => {
+        if (g.grade !== grade) return;
+        (g.units || []).forEach(u => units.push(u));
+      });
+    });
+    return units;
+  }
+
+  function populateSubjectOptions() {
+    const subjects = allSubjects();
+    $("filterSubject").innerHTML = subjects.map(s => `<option value="${s}">${s}</option>`).join("");
+  }
+
+  function populateGradeOptions(subject) {
+    const grades = gradesForSubject(subject);
+    $("filterGrade").innerHTML = grades.map(g => `<option value="${g}">${g} 年级</option>`).join("");
+  }
+
+  function populateUnitOptions(subject, grade, preferredUnitId) {
+    const list = unitsFor(subject, grade);
+    const unitSel = $("filterUnit");
+    unitSel.innerHTML = list.map(u => `<option value="${u.unit_id}">${u.unit_title}</option>`).join("");
+    if (!list.length) return null;
+    if (preferredUnitId && list.some(u => u.unit_id === preferredUnitId)) {
+      unitSel.value = preferredUnitId;
+      return preferredUnitId;
+    }
+    if (currentUnitId && list.some(u => u.unit_id === currentUnitId)) {
+      unitSel.value = currentUnitId;
+      return currentUnitId;
+    }
+    return list[0].unit_id;
+  }
+
+  function applyInitialFilters() {
+    const subjects = allSubjects();
+    if (!subjects.length) return;
+
+    const urlSubject = urlPrefs.get("subject");
+    const urlUnitId = urlPrefs.get("unit_id");
+    let subject = subjects.includes("数学") ? "数学" : subjects[0];
+    let grade = studentGradeLevel;
+    let unitId = null;
+
+    if (urlUnitId) {
+      const meta = findUnitMeta(urlUnitId);
+      if (meta) {
+        subject = meta.subject;
+        grade = meta.grade;
+        unitId = urlUnitId;
+      }
+    }
+    if (urlSubject && subjects.includes(urlSubject)) {
+      subject = urlSubject;
+      if (!urlUnitId) {
+        grade = studentGradeLevel;
+      }
+    }
+
+    $("filterSubject").value = subject;
+    populateGradeOptions(subject);
+    const grades = gradesForSubject(subject);
+    if (!grades.includes(grade)) {
+      grade = grades.includes(studentGradeLevel) ? studentGradeLevel : grades[0];
+    }
+    $("filterGrade").value = String(grade);
+    populateUnitOptions(subject, grade, unitId);
+  }
+
+  function syncFiltersFromUi() {
+    const subject = $("filterSubject").value;
+    populateGradeOptions(subject);
+    const grades = gradesForSubject(subject);
+    let grade = parseInt($("filterGrade").value, 10);
+    if (!grades.includes(grade)) {
+      grade = grades.includes(studentGradeLevel) ? studentGradeLevel : grades[0];
+      $("filterGrade").value = String(grade);
+    }
+    populateUnitOptions(subject, grade, $("filterUnit").value);
+  }
+
+  function renderGaps(gaps, unitMeta) {
+    if (unitMeta) {
+      $("unitSummary").classList.remove("hidden");
+      $("unitSummary").innerHTML = `<h2>${unitMeta.unit_title}</h2>
+        <p class="sub"><code>${unitMeta.unit_id}</code> · ${unitMeta.knowledge_points?.length || 0} 个知识点</p>`;
+    } else {
+      $("unitSummary").classList.add("hidden");
+    }
+    if (!gaps.length) {
+      $("gapsCard").innerHTML = `<div class="card"><h2>知识点掌握</h2><p class="sub">本单元暂无学情记录。</p></div>`;
+      return;
+    }
+    const rows = gaps.map(g => `<tr>
+      <td>${g.title || g.knowledge_point_id}</td>
+      <td>${statusBadge(g.status)}</td>
+      <td>错 ${g.stats.total_wrong} / 共 ${g.stats.total_attempts}</td>
+      <td>${(g.error_breakdown && Object.keys(g.error_breakdown).length)
+        ? Object.entries(g.error_breakdown).map(([k,v]) => k + "×" + v).join("、") : "—"}</td>
+    </tr>`).join("");
+    $("gapsCard").innerHTML = `<div class="card"><h2>知识点掌握（本单元）</h2>
+      <table class="data"><thead><tr><th>知识点</th><th>状态</th><th>练习</th><th>错因</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  }
+
+  async function loadProfile() {
+    const sid = currentStudentId();
+    const unitId = $("filterUnit").value;
+    if (!sid || !unitId) {
+      showMsg("请选择单元", false);
+      return;
+    }
+    const q = new URLSearchParams({ unit_id: unitId, include_pending: "false" });
+    const res = await fetch(`/api/students/${encodeURIComponent(sid)}/learning-profile?${q}`);
+    if (!res.ok) { showMsg("加载失败", false); return; }
+    const data = await res.json();
+    const meta = findUnitMeta(unitId);
+    renderGaps(data.gaps || [], meta?.unit);
+    showMsg(`已加载 ${(data.gaps||[]).length} 个知识点`, true);
+  }
+
+  async function loadTree() {
+    const res = await fetch("/api/kp/catalog/tree");
+    if (!res.ok) return;
+    tree = await res.json();
+    populateSubjectOptions();
+    applyInitialFilters();
+  }
+
+  async function loadStudentContext() {
+    const sid = currentStudentId();
+    if (!sid) return;
+    const res = await fetch(`/api/students/${encodeURIComponent(sid)}/learning-unit`);
+    if (!res.ok) return;
+    const data = await res.json();
+    studentGradeLevel = data.student_grade_level || 3;
+    currentUnitId = data.current?.unit_id || null;
+  }
+
+  $("filterSubject").onchange = () => {
+    const subject = $("filterSubject").value;
+    populateGradeOptions(subject);
+    $("filterGrade").value = String(
+      gradesForSubject(subject).includes(studentGradeLevel)
+        ? studentGradeLevel
+        : gradesForSubject(subject)[0]
+    );
+    populateUnitOptions(subject, parseInt($("filterGrade").value, 10), null);
+    loadProfile();
+  };
+  $("filterGrade").onchange = () => {
+    syncFiltersFromUi();
+    loadProfile();
+  };
+  $("filterUnit").onchange = loadProfile;
+  $("btnLoad").onclick = loadProfile;
+
+  async function loadStudents() {
+    const res = await fetch("/api/students");
+    if (!res.ok) return;
+    const students = await res.json();
+    const sel = $("studentSelect");
+    sel.innerHTML = students.map(s => `<option value="${s.student_id}">${s.display_name}（${s.grade}）</option>`).join("");
+    const q = urlPrefs.get("student");
+    if (q && students.some(s => s.student_id === q)) sel.value = q;
+    sel.onchange = async () => {
+      await loadStudentContext();
+      applyInitialFilters();
+      await loadProfile();
+    };
+    await loadStudentContext();
+    await loadTree();
+    await loadProfile();
+  }
+  loadStudents();
+</script>

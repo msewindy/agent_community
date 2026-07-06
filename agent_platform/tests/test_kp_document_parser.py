@@ -16,6 +16,7 @@ from agent_platform.learning.kp_document_parser import (
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MATH_SAMPLE = REPO_ROOT / "docs" / "content" / "数学-二年级.kp.md"
 CHINESE_SAMPLE = REPO_ROOT / "docs" / "content" / "语文-二年级.kp.md"
+FULL_SAMPLE = REPO_ROOT / "docs" / "content" / "数学-三年级-完整样例.kp.md"
 
 
 def test_parse_math_sample_file() -> None:
@@ -70,7 +71,7 @@ unit_id: math-g2-test
         parse_kp_document_text(text)
 
 
-def test_unit_without_kp_raises() -> None:
+def test_unit_without_kp_or_questions_raises() -> None:
     text = """---
 学科: 数学
 年级: 2
@@ -83,5 +84,71 @@ unit_id: math-g2-empty
 ## 知识点
 
 """
-    with pytest.raises(KpDocumentParseError, match="no knowledge points"):
+    with pytest.raises(KpDocumentParseError, match="must have knowledge points and/or practice questions"):
         parse_kp_document_text(text)
+
+
+def test_parse_questions_only_unit() -> None:
+    text = """---
+学科: 数学
+年级: 3
+教材版本: test
+---
+
+# 单元：混合运算
+unit_id: math-g3-mixed-ops
+
+## 练习题
+
+- 计算：6 + 3 × 4 = ? → q-g3m-t-001
+  知识点: kp-g3-mix-mult-add
+  答案: 18
+  解析: 先乘后加
+  错因: PROCEDURE_ERROR
+"""
+    draft = parse_kp_document_text(text)
+    assert draft.is_questions_only()
+    assert draft.question_count == 1
+    assert draft.units[0].questions[0].question_id == "q-g3m-t-001"
+
+
+def test_parse_kp_and_questions_combined() -> None:
+    text = """---
+学科: 数学
+年级: 3
+教材版本: test
+---
+
+# 单元：示例
+unit_id: math-g3-ex
+
+## 知识点
+
+- 示例 → kp-g3-ex-01
+
+## 练习题
+
+- 1+1=? → q-g3-ex-001
+  知识点: kp-g3-ex-01
+  答案: 2
+  解析: 加法
+  错因: PROCEDURE_ERROR
+"""
+    draft = parse_kp_document_text(text)
+    assert draft.knowledge_point_count == 1
+    assert draft.question_count == 1
+    qs = draft.to_questions()
+    assert qs[0].unit_id == "math-g3-ex"
+
+
+def test_parse_family_alpha_full_sample() -> None:
+    draft = parse_kp_document(FULL_SAMPLE)
+    assert draft.subject == "数学"
+    assert draft.grade == 3
+    assert draft.units[0].unit_id == "math-g3-mixed-ops"
+    assert draft.knowledge_point_count == 8
+    assert draft.question_count == 4
+    kp = next(k for k in draft.units[0].knowledge_points if k.knowledge_point_id == "kp-g3-mix-mult-add")
+    assert kp.description and "先算乘法" in kp.description
+    q = draft.units[0].questions[0]
+    assert q.default_error_code == "PROCEDURE_ERROR"

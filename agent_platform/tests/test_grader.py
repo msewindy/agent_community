@@ -48,3 +48,18 @@ def test_numeric_within_tolerance(grader: Grader) -> None:
 def test_numeric_outside_tolerance(grader: Grader) -> None:
     q = _q(answer_type=AnswerType.numeric, expected_answer="8", numeric_tolerance=0.01)
     assert grader.grade(q, "8.02").correct is False
+
+
+def test_exact_latin_apostrophe_equivalence(grader: Grader) -> None:
+    q = _q(
+        expected_answer="do not",
+        default_error_code="GRAMMAR_ERROR",
+        unit_id="english-g3-starter",
+    )
+    assert grader.grade(q, "don't").correct is True
+
+
+def test_exact_chinese_punctuation_not_latin_normalized(grader: Grader) -> None:
+    q = _q(expected_answer="。", unit_id="chinese-g2-sentence-basic")
+    assert grader.grade(q, "。").correct is True
+    assert grader.grade(q, ".").correct is False

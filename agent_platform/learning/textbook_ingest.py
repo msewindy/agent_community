@@ -89,10 +89,6 @@ def _stub_preview(source_type: IngestSourceType, path: Path, subject: Optional[s
 
 
 def _default_kp_candidates(subject: Optional[str], grade_level: int) -> list[KpCandidate]:
-    cfg = load_student_learning_config()
-    pilot = cfg.get("pilot") or {}
-    units = pilot.get("units") or {}
-    unit_id = units.get("math") if subject == "数学" else units.get("chinese")
     if subject == "语文":
         return [
             KpCandidate(
@@ -104,6 +100,21 @@ def _default_kp_candidates(subject: Optional[str], grade_level: int) -> list[KpC
             KpCandidate(
                 knowledge_point_id="kp-g2-word-order",
                 title="语序与句子通顺",
+                confidence=0.35,
+                source_span="stub: 待审核对齐 catalog",
+            ),
+        ]
+    if subject == "英语":
+        return [
+            KpCandidate(
+                knowledge_point_id="kp-en-g3-vocab-basic",
+                title="基础词汇认读",
+                confidence=0.4,
+                source_span="stub: 待审核对齐 catalog",
+            ),
+            KpCandidate(
+                knowledge_point_id="kp-en-g3-grammar-basic",
+                title="基础句型语法",
                 confidence=0.35,
                 source_span="stub: 待审核对齐 catalog",
             ),

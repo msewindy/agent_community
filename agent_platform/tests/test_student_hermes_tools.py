@@ -38,14 +38,16 @@ def test_student_context_get(student_env) -> None:
     sid, _ = student_env
     out = json.loads(student_context_get({"student_id": sid}))
     assert out["success"] is True
-    assert "100以内加减法" in out["prompt_block"]
+    assert "混合运算" in out["prompt_block"]
+    assert "math-g3-mixed-ops" in out["prompt_block"]
 
 
 def test_pre_llm_injects_unit(student_env) -> None:
     sid, _ = student_env
     inj = pre_llm_student_context_hook(student_id=sid)
     assert inj is not None
-    assert "100以内加减法" in inj["context"]
+    assert "混合运算" in inj["context"]
+    assert "math-g3-mixed-ops" in inj["context"]
     assert "AnswerGate" in inj["context"]
 
 

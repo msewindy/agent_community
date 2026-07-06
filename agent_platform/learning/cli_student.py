@@ -639,7 +639,7 @@ def main() -> int:
         choices=["pdf", "photo", "document", "kp-doc"],
     )
     isub.add_argument("--path", required=True, type=Path)
-    isub.add_argument("--subject", default=None, help="数学 or 语文 (kp-doc 从文档 frontmatter 读取)")
+    isub.add_argument("--subject", default=None, help="数学 / 语文 / 英语 (kp-doc 从文档 frontmatter 读取)")
     isub.add_argument("--grade-level", type=int, default=int(defaults.get("grade_level", 2)))
     isub.set_defaults(func=cmd_ingest_submit)
     ilist = ingest_sub.add_parser("list", help="List ingest jobs")

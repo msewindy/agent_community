@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "unit_id": "english-g3-starter",
+  "grade": 3,
+  "subject": "英语",
+  "questions": [
+    {
+      "question_id": "q-en3-001",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-vocab-basic",
+      "stem": "「苹果」的英文单词是？（小写）",
+      "answer_type": "exact",
+      "expected_answer": "apple",
+      "explanation": "apple 表示苹果。",
+      "default_error_code": "VOCAB_GAP"
+    },
+    {
+      "question_id": "q-en3-002",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-vocab-basic",
+      "stem": "「猫」的英文单词是？（小写）",
+      "answer_type": "exact",
+      "expected_answer": "cat",
+      "explanation": "cat 表示猫。",
+      "default_error_code": "VOCAB_GAP"
+    },
+    {
+      "question_id": "q-en3-003",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-spelling-basic",
+      "stem": "补全拼写：b _ _ k（书，4 个字母）",
+      "answer_type": "exact",
+      "expected_answer": "book",
+      "explanation": "book 表示书。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-en3-004",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-spelling-basic",
+      "stem": "补全拼写：s c h _ _ l（学校，6 个字母）",
+      "answer_type": "exact",
+      "expected_answer": "school",
+      "explanation": "school 表示学校。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-en3-005",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-grammar-basic",
+      "stem": "选词填空：I ___ a student.（填 am / is / are 之一）",
+      "answer_type": "exact",
+      "expected_answer": "am",
+      "explanation": "I 后面用 am。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-006",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-grammar-basic",
+      "stem": "选词填空：She ___ my friend.（填 am / is / are 之一）",
+      "answer_type": "exact",
+      "expected_answer": "is",
+      "explanation": "She 后面用 is。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-007",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-grammar-basic",
+      "stem": "They ___ happy.（填 am / is / are 之一）",
+      "answer_type": "exact",
+      "expected_answer": "are",
+      "explanation": "They 后面用 are。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-008",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-reading-basic",
+      "stem": "Tom has a red bag. What color is the bag?（填 red / blue / green 之一）",
+      "answer_type": "exact",
+      "expected_answer": "red",
+      "explanation": "文中说 red bag。",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-009",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-reading-basic",
+      "stem": "My name is Lily. I am eight. How old is Lily?（只答数字）",
+      "answer_type": "numeric",
+      "expected_answer": "8",
+      "explanation": "文中说 I am eight。",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-010",
+      "unit_id": "english-g3-starter",
+      "knowledge_point_id": "kp-en-g3-vocab-basic",
+      "stem": "「狗」的英文单词是？（小写）",
+      "answer_type": "exact",
+      "expected_answer": "dog",
+      "explanation": "dog 表示狗。",
+      "default_error_code": "VOCAB_GAP"
+    }
+  ]
+}

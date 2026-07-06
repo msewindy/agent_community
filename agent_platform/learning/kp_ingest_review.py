@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from agent_platform.learning.contracts import utc_now
-from agent_platform.learning.kp_catalog import KpCatalogService
+from agent_platform.learning.kp_catalog import KpCatalogService, get_kp_catalog_service
 from agent_platform.learning.kp_catalog_diff import CatalogDiff, ConflictKind
 from agent_platform.learning.kp_document_parser import KpDocumentDraft
 from agent_platform.learning.textbook_ingest import IngestJobStatus, TextbookIngestJob, TextbookIngestService
@@ -74,9 +75,11 @@ class KpIngestReviewService:
         self,
         ingest_svc: Optional[TextbookIngestService] = None,
         catalog_svc: Optional[KpCatalogService] = None,
+        wiki_sync_svc: Optional["KpWikiSyncService"] = None,
     ) -> None:
         self._ingest = ingest_svc or TextbookIngestService()
-        self._catalog = catalog_svc or KpCatalogService()
+        self._catalog = catalog_svc or get_kp_catalog_service()
+        self._wiki_sync = wiki_sync_svc
 
     def _draft_from_job(self, job: TextbookIngestJob) -> KpDocumentDraft:
         if not job.parsed_draft:
@@ -85,7 +88,15 @@ class KpIngestReviewService:
 
     def build_snapshot(self, job: TextbookIngestJob) -> IngestReviewSnapshot:
         draft = self._draft_from_job(job)
-        diff = self._catalog.diff_with_draft(draft)
+        if draft.is_questions_only():
+            diff = CatalogDiff(
+                subject=draft.subject,
+                grade=draft.grade,
+                units=[],
+                conflicts=[],
+            )
+        else:
+            diff = self._catalog.diff_with_draft(draft)
         resolutions = [
             ConflictResolutionEntry.model_validate(r)
             for r in (job.conflict_resolutions or [])
@@ -187,17 +198,25 @@ class KpIngestReviewService:
         job: TextbookIngestJob,
         draft: KpDocumentDraft,
     ) -> list[ReviewChecklistItem]:
+        from agent_platform.learning.question_bank_ingest import validate_draft_questions
+
         warnings = list(draft.parse_warnings or [])
         unit_count = len(draft.units)
-        kp_count = sum(len(u.knowledge_points) for u in draft.units)
-        empty_units = [u.unit_id for u in draft.units if not u.knowledge_points]
+        kp_count = draft.knowledge_point_count
+        q_count = draft.question_count
+        empty_units = [
+            u.unit_id for u in draft.units if not u.knowledge_points and not u.questions
+        ]
 
-        return [
+        items = [
             ReviewChecklistItem(
                 rule_id="F1",
                 title="Markdown / YAML 解析成功",
                 satisfied=True,
-                detail=f"学科 {draft.subject} · {draft.grade} 年级 · {unit_count} 单元 · {kp_count} 知识点",
+                detail=(
+                    f"学科 {draft.subject} · {draft.grade} 年级 · "
+                    f"{unit_count} 单元 · {kp_count} 知识点 · {q_count} 练习题"
+                ),
             ),
             ReviewChecklistItem(
                 rule_id="F2",
@@ -207,12 +226,12 @@ class KpIngestReviewService:
             ),
             ReviewChecklistItem(
                 rule_id="F3",
-                title="单元与知识点结构",
+                title="单元结构（知识点和/或练习题）",
                 satisfied=unit_count > 0 and not empty_units,
                 detail=(
                     f"共 {unit_count} 单元"
                     if not empty_units
-                    else f"以下单元缺少知识点：{', '.join(empty_units)}"
+                    else f"以下单元为空：{', '.join(empty_units)}"
                 ),
             ),
             ReviewChecklistItem(
@@ -222,6 +241,37 @@ class KpIngestReviewService:
                 detail="无" if not warnings else "；".join(warnings),
             ),
         ]
+
+        if draft.has_questions():
+            qval = validate_draft_questions(draft, catalog=self._catalog)
+            items.append(
+                ReviewChecklistItem(
+                    rule_id="Q1",
+                    title="练习题字段与引用校验",
+                    satisfied=qval.ok,
+                    detail="；".join(qval.errors) if qval.errors else f"共 {qval.question_count} 道题",
+                )
+            )
+            items.append(
+                ReviewChecklistItem(
+                    rule_id="Q2",
+                    title="练习题警告",
+                    required=False,
+                    satisfied=len(qval.warnings) == 0,
+                    detail="无" if not qval.warnings else "；".join(qval.warnings),
+                )
+            )
+        elif not draft.has_knowledge_points():
+            items.append(
+                ReviewChecklistItem(
+                    rule_id="F5",
+                    title="文档含知识点或练习题",
+                    satisfied=False,
+                    detail="至少需要知识点列表或练习题之一",
+                )
+            )
+
+        return items
 
     def _build_checklist(
         self,
@@ -259,9 +309,12 @@ class KpIngestReviewService:
     def approve(self, job_id: str) -> "CatalogApproveResult":
         from agent_platform.learning.kp_catalog_merge import (
             CatalogApproveResult,
+            CatalogMergeReport,
             KpCatalogWriter,
+            KpWikiSyncSummary,
             merge_approved_draft,
         )
+        from agent_platform.learning.question_bank_ingest import import_draft_questions
 
         job = self._ingest.get_job(job_id)
         if job.status != IngestJobStatus.pending_review:
@@ -281,38 +334,95 @@ class KpIngestReviewService:
             ConflictResolutionEntry.model_validate(r)
             for r in (job.conflict_resolutions or [])
         ]
-        merged, report = merge_approved_draft(
-            self._catalog.catalog,
-            draft,
-            snapshot.catalog_diff,
-            resolutions,
-        )
-        report.job_id = job_id
 
-        writer = KpCatalogWriter(
-            self._catalog,
-            audit_dir=self._ingest._root / "_kp_catalog_audit",  # noqa: SLF001
-        )
-        backup_path = writer.save_with_backup(merged)
-        audit_path = writer.write_audit_record(
-            job_id=job_id,
-            backup_path=backup_path,
-            merge_report=report,
-            source_path=job.source_path,
-        )
+        catalog_merged = draft.has_knowledge_points()
+        backup_path = ""
+        audit_path = ""
+        merge_report = CatalogMergeReport(job_id=job_id)
+
+        if catalog_merged:
+            merged, merge_report = merge_approved_draft(
+                self._catalog.catalog,
+                draft,
+                snapshot.catalog_diff,
+                resolutions,
+            )
+            merge_report.job_id = job_id
+
+            writer = KpCatalogWriter(
+                self._catalog,
+                audit_dir=self._ingest._root / "_kp_catalog_audit",  # noqa: SLF001
+            )
+            backup_path = str(writer.save_with_backup(merged))
+            audit_path = str(
+                writer.write_audit_record(
+                    job_id=job_id,
+                    backup_path=Path(backup_path),
+                    merge_report=merge_report,
+                    source_path=job.source_path,
+                )
+            )
+            self._catalog.reload()
+
+        questions_imported = 0
+        question_warnings: list[str] = []
+        question_archive: str | None = None
+        if draft.has_questions():
+            q_result = import_draft_questions(
+                draft,
+                source_path=job.source_path,
+                archive=True,
+            )
+            questions_imported = q_result.imported
+            question_warnings = list(q_result.warnings)
+            question_archive = q_result.archive_path
 
         job.status = IngestJobStatus.approved
         job.approved_at = utc_now().isoformat()
-        job.catalog_backup_path = str(backup_path)
-        job.merge_report = report.model_dump(mode="json")
+        if backup_path:
+            job.catalog_backup_path = backup_path
+        job.merge_report = merge_report.model_dump(mode="json")
         job.ready_to_approve = False
-        job.notes = list(job.notes) + ["approved: merged into kp_catalog.json"]
+        notes = list(job.notes)
+        if catalog_merged:
+            notes.append("approved: merged into kp_catalog.json")
+        if questions_imported:
+            notes.append(f"approved: imported {questions_imported} question(s) into SQLite")
+        job.notes = notes
         self._ingest._save(job)
+
+        wiki_sync = KpWikiSyncSummary()
+        if catalog_merged:
+            try:
+                from agent_platform.learning.kp_wiki_sync import KpWikiSyncService
+
+                wiki_svc = self._wiki_sync or KpWikiSyncService(catalog=self._catalog)
+                wiki_report = wiki_svc.sync_draft_after_approve(
+                    draft,
+                    merge_report,
+                    job_id=job_id,
+                )
+                wiki_sync = KpWikiSyncSummary(
+                    pages_synced=wiki_report.pages_synced,
+                    page_paths=wiki_report.page_paths,
+                    warnings=wiki_report.warnings,
+                )
+                if wiki_report.pages_synced:
+                    notes.append(f"approved: synced {wiki_report.pages_synced} wiki page(s)")
+                    job.notes = notes
+                    self._ingest._save(job)
+            except Exception as exc:  # noqa: BLE001
+                wiki_sync = KpWikiSyncSummary(warnings=[f"wiki sync failed: {exc}"])
 
         return CatalogApproveResult(
             job_id=job_id,
             catalog_path=str(self._catalog._path),  # noqa: SLF001
-            backup_path=str(backup_path),
-            audit_path=str(audit_path),
-            merge_report=report,
+            backup_path=backup_path,
+            audit_path=audit_path,
+            merge_report=merge_report,
+            catalog_merged=catalog_merged,
+            questions_imported=questions_imported,
+            question_import_warnings=question_warnings,
+            question_archive_path=question_archive,
+            wiki_sync=wiki_sync,
         )

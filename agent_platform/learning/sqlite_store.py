@@ -80,6 +80,36 @@ def import_from_json(seed_path: Path, db_path: Path, *, replace_all: bool = True
     return len(questions)
 
 
+def upsert_questions(db_path: Path, questions: list[Question]) -> int:
+    if not questions:
+        return 0
+    ensure_schema(db_path)
+    with sqlite3.connect(db_path) as conn:
+        for q in questions:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO questions (
+                    question_id, unit_id, knowledge_point_id, stem,
+                    answer_type, expected_answer, explanation,
+                    default_error_code, numeric_tolerance
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    q.question_id,
+                    q.unit_id,
+                    q.knowledge_point_id,
+                    q.stem,
+                    q.answer_type.value,
+                    q.expected_answer,
+                    q.explanation,
+                    q.default_error_code,
+                    q.numeric_tolerance,
+                ),
+            )
+        conn.commit()
+    return len(questions)
+
+
 def list_questions(
     db_path: Path,
     unit_id: Optional[str] = None,

@@ -1,0 +1,117 @@
+<div class="toolbar">
+  <label>学生
+    <select id="studentSelect"><option value="">加载中…</option></select>
+  </label>
+  <button type="button" id="btnRefresh">刷新</button>
+</div>
+<div id="message"></div>
+<div id="gradeHint" class="hint" style="margin-bottom:1rem"></div>
+<div id="subjectGrid" class="subject-grid subject-grid-wide"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const ATT_KIND = { knowledge_gap: "知识点", dimension: "能力习惯", repeat_error: "重复犯错" };
+
+  function showMsg(text, ok) {
+    const el = $("message");
+    if (!text) { el.textContent = ""; el.className = ""; return; }
+    el.className = "msg " + (ok ? "ok" : "err");
+    el.textContent = text;
+  }
+
+  function currentStudentId() { return $("studentSelect").value.trim(); }
+  function pct(v) { return v == null ? "—" : Math.round(v * 100) + "%"; }
+
+  function renderAttention(items, subject) {
+    if (!items.length) {
+      return '<p class="hint" style="margin:0.5rem 0 0">暂无特别需关注的学情项。</p>';
+    }
+    return `<ul class="attention-list compact">${items.map(it => {
+      const hist = it.is_historical ? '<span class="hist-badge">低年级遗留</span> ' : '';
+      const loc = it.unit_title
+        ? `<span class="hint">${it.grade || ""}年级 · ${it.unit_title}</span> `
+        : (it.grade ? `<span class="hint">${it.grade}年级</span> ` : "");
+      return `<li class="${it.is_historical ? "attention-historical" : ""}">
+      ${hist}${loc}<span class="att-kind">${ATT_KIND[it.kind] || it.kind}</span>
+      <strong>${it.title}</strong> — ${it.detail}
+      ${it.unit_id ? ` <a href="/learning-detail?subject=${encodeURIComponent(subject)}&unit_id=${it.unit_id}">查看单元</a>` : ""}
+    </li>`;
+    }).join("")}</ul>`;
+  }
+
+  function renderSubjects(data) {
+    const subjects = data.subjects || [];
+    if (!subjects.length) {
+      $("subjectGrid").innerHTML = '<div class="hint">知识库暂无学科数据</div>';
+      return;
+    }
+    $("gradeHint").textContent =
+      `${data.display_name} · ${data.grade}（${data.grade_level} 年级）学情总览 — 本页展示当前年级全部单元的累计学习情况`;
+
+    $("subjectGrid").innerHTML = subjects.map(s => {
+      const hist = s.historical_weak_count > 0 && !(s.attention_items || []).some(i => i.is_historical)
+        ? `<span class="hist-badge">另含 ${s.historical_weak_count} 项低年级历史薄弱（见下方需关注）</span>` : "";
+      const unitRows = (s.units || []).map(u => `<tr>
+        <td><a href="/learning-detail?subject=${encodeURIComponent(s.subject)}&unit_id=${u.unit_id}">${u.unit_title}</a>
+          <div class="hint"><code>${u.unit_id}</code></div></td>
+        <td>${u.progress_label}</td>
+        <td>${u.kp_mastered}/${u.kp_total} 掌握<br><span class="hint">薄弱 ${u.kp_weak} · 未练 ${u.kp_unstarted}</span></td>
+        <td>${u.attempts} 次<br>${pct(u.correct_rate)}</td>
+      </tr>`).join("");
+
+      return `<div class="subject-card subject-card-wide">
+        <div class="subject-card-head">
+          <h3>${s.subject}</h3>
+          <div class="subject-stats">
+            <span class="stat-pill">单元 ${s.units_with_practice}/${s.units_total}</span>
+            <span class="stat-pill">KP ${s.kp_mastered}/${s.kp_total} 掌握</span>
+            <span class="stat-pill">练习 ${s.attempts_total} 次</span>
+            <span class="stat-pill">正确率 ${pct(s.correct_rate)}</span>
+          </div>
+        </div>
+        <p class="sub summary-line">${s.summary}</p>
+        ${hist}
+        <h4 class="unit-table-title">单元学习进度</h4>
+        <table class="data unit-table">
+          <thead><tr><th>单元</th><th>状态</th><th>知识点</th><th>练习</th></tr></thead>
+          <tbody>${unitRows || '<tr><td colspan="4" class="hint">本年级暂无单元</td></tr>'}</tbody>
+        </table>
+        <h4 class="unit-table-title">需关注</h4>
+        ${renderAttention(s.attention_items || [], s.subject)}
+        <div style="margin-top:0.75rem"><a href="/learning-detail?subject=${encodeURIComponent(s.subject)}">进入 ${s.subject} 学情详情 →</a></div>
+      </div>`;
+    }).join("");
+  }
+
+  async function loadDashboard() {
+    const sid = currentStudentId();
+    if (!sid) { showMsg("请选择学生", false); return; }
+    const res = await fetch(`/api/students/${encodeURIComponent(sid)}/learning-dashboard`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showMsg("加载失败: " + (err.detail || res.status), false);
+      return;
+    }
+    const data = await res.json();
+    renderSubjects(data);
+    showMsg(`已加载 ${data.display_name} 的学情总览`, true);
+  }
+
+  async function loadStudents() {
+    const res = await fetch("/api/students");
+    if (!res.ok) return;
+    const students = await res.json();
+    const sel = $("studentSelect");
+    if (!students.length) { sel.innerHTML = '<option value="">暂无学生</option>'; return; }
+    sel.innerHTML = students.map(s =>
+      `<option value="${s.student_id}">${s.display_name}（${s.grade || "—"}）</option>`
+    ).join("");
+    const q = new URLSearchParams(location.search).get("student");
+    if (q && students.some(s => s.student_id === q)) sel.value = q;
+    sel.onchange = loadDashboard;
+    await loadDashboard();
+  }
+
+  $("btnRefresh").onclick = loadDashboard;
+  loadStudents();
+</script>

@@ -81,6 +81,22 @@ class KpCatalogService:
             items = [u for u in items if u.subject == subject]
         return items
 
+    def list_subjects(self) -> list[str]:
+        return sorted({u.subject for u in self._catalog.units})
+
+    def unit_for_kp(self, knowledge_point_id: str) -> Optional[UnitCatalogEntry]:
+        for unit in self._catalog.units:
+            if any(kp.knowledge_point_id == knowledge_point_id for kp in unit.knowledge_points):
+                return unit
+        return None
+
+    def kp_index(self) -> dict[str, UnitCatalogEntry]:
+        out: dict[str, UnitCatalogEntry] = {}
+        for unit in self._catalog.units:
+            for kp in unit.knowledge_points:
+                out[kp.knowledge_point_id] = unit
+        return out
+
     def assert_student_may_access_unit(self, student_grade_level: int, unit_id: str) -> None:
         unit = self.get_unit(unit_id)
         if unit.grade > student_grade_level:
@@ -112,7 +128,56 @@ class KpCatalogService:
 
         return build_catalog_tree(self.catalog.units)
 
+    def reload(self) -> None:
+        """Reload catalog from disk (e.g. after external merge or hot-fix)."""
+        raw = json.loads(self._path.read_text(encoding="utf-8"))
+        self._catalog = KpCatalog.model_validate(raw)
+        self._by_unit = {u.unit_id: u for u in self._catalog.units}
+
     def diff_with_draft(self, draft):
         from agent_platform.learning.kp_catalog_diff import diff_draft_against_catalog
 
         return diff_draft_against_catalog(draft, self)
+
+
+_shared_catalog: KpCatalogService | None = None
+_shared_catalog_path: Path | None = None
+_shared_catalog_mtime: float = 0.0
+
+
+def get_kp_catalog_service(
+    catalog_path: Optional[Path] = None,
+    config: Optional[dict] = None,
+) -> KpCatalogService:
+    """Shared catalog with mtime-based reload (cross-process safe after KP approve)."""
+    global _shared_catalog, _shared_catalog_path, _shared_catalog_mtime
+
+    if catalog_path is not None:
+        return KpCatalogService(catalog_path=catalog_path, config=config)
+
+    cfg = config or load_student_learning_config()
+    cat_cfg = cfg.get("kp_catalog") or {}
+    path = Path(
+        cat_cfg.get("path", "agent_platform/learning/catalog/kp_catalog.json")
+    )
+    if not path.is_absolute():
+        path = (repo_root() / path).resolve()
+    mtime = path.stat().st_mtime if path.is_file() else 0.0
+
+    if (
+        _shared_catalog is None
+        or _shared_catalog_path != path
+        or mtime > _shared_catalog_mtime
+    ):
+        _shared_catalog = KpCatalogService(catalog_path=path, config=cfg)
+        _shared_catalog_path = path
+        _shared_catalog_mtime = mtime
+    return _shared_catalog
+
+
+def invalidate_kp_catalog_cache() -> None:
+    """Force next ``get_kp_catalog_service()`` to reload from disk."""
+    global _shared_catalog, _shared_catalog_path, _shared_catalog_mtime
+    _shared_catalog = None
+    _shared_catalog_path = None
+    _shared_catalog_mtime = 0.0

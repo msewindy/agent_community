@@ -1,0 +1,62 @@
+<div id="message"></div>
+
+<div class="card">
+  <h2>当前题库</h2>
+  <p class="sub">推题唯一来源（SQLite）。可与知识点写在同一 <code>.kp.md</code> 一并入库。</p>
+  <div id="overview">加载中…</div>
+  <div class="toolbar" style="margin-bottom:0">
+    <button type="button" id="btnRefresh">刷新</button>
+    <a class="btn secondary" href="/api/question-bank/format-template" style="text-decoration:none">下载练习题模板</a>
+    <a class="btn secondary" href="/kp-review" style="text-decoration:none">知识点+题入库</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>上传仅练习题</h2>
+  <p class="sub">单元须已在知识库；上传后在「知识点入库」批准写入。</p>
+  <div class="toolbar" style="margin-bottom:0">
+    <input type="file" id="fileInput" accept=".md,.markdown,.kp.md" />
+    <button type="button" id="btnUpload">上传并提交审核</button>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function showMsg(text, ok) {
+    const el = $("message");
+    el.className = "msg " + (ok ? "ok" : "err");
+    el.textContent = text;
+  }
+  function renderOverview(data) {
+    const zeroUnits = (data.units || []).filter(u => u.question_count === 0);
+    let html = `<div class="stats-row" style="margin-bottom:0.75rem">
+      <span class="stat-pill">总题数 <strong>${data.total_questions || 0}</strong></span>
+      <span class="stat-pill">${data.uses_sqlite ? "SQLite" : "JSON"}</span></div>`;
+    html += '<table class="data"><thead><tr><th>单元</th><th>学科</th><th>题数</th></tr></thead><tbody>';
+    for (const u of data.units || []) {
+      const cls = u.question_count === 0 ? "warn" : "";
+      html += `<tr><td><code>${u.unit_id}</code><br><span class="hint">${u.unit_title||""}</span></td>
+        <td>${u.subject||""} ${u.grade||""}年级</td><td class="${cls}">${u.question_count}</td></tr>`;
+    }
+    html += "</tbody></table>";
+    if (zeroUnits.length) html += `<p class="unit-warn" style="margin-top:0.75rem">⚠ ${zeroUnits.length} 个单元尚无题目</p>`;
+    $("overview").innerHTML = html;
+  }
+  async function loadOverview() {
+    const res = await fetch("/api/question-bank/info");
+    if (!res.ok) { showMsg("加载失败", false); return; }
+    renderOverview(await res.json());
+  }
+  $("btnRefresh").addEventListener("click", loadOverview);
+  $("btnUpload").addEventListener("click", async () => {
+    const file = $("fileInput").files[0];
+    if (!file) { showMsg("请选择文件", false); return; }
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/question-bank/upload", { method: "POST", body: fd });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { showMsg("上传失败: " + (data.detail || res.status), false); return; }
+    window.location.href = data.redirect_review || "/kp-review";
+  });
+  loadOverview();
+</script>

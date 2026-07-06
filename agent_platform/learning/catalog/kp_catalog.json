@@ -170,6 +170,31 @@
           "title": "混合运算应用题列式"
         }
       ]
+    },
+    {
+      "unit_id": "english-g3-starter",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "英语入门（三年级示例单元）",
+      "textbook_ref": "外研版·三年级上册（示例）",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-vocab-basic",
+          "title": "基础词汇认读"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-spelling-basic",
+          "title": "单词拼写"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-grammar-basic",
+          "title": "基础句型语法"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-reading-basic",
+          "title": "简短阅读理解"
+        }
+      ]
     }
   ]
 }

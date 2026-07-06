@@ -167,6 +167,33 @@ def diff_draft_against_catalog(
 
     for draft_unit in draft.units:
         catalog_unit = catalog_by_unit.get(draft_unit.unit_id)
+
+        if not draft_unit.knowledge_points:
+            if catalog_unit is None:
+                conflicts.append(
+                    CatalogConflict(
+                        conflict_id=f"unit-missing:{draft_unit.unit_id}",
+                        kind=ConflictKind.unit_exists,
+                        message=(
+                            f"unit {draft_unit.unit_id!r} not in catalog; "
+                            "questions-only upload requires an existing unit"
+                        ),
+                        unit_id=draft_unit.unit_id,
+                    )
+                )
+            else:
+                summary.unchanged_units += 1
+                units_diff.append(
+                    UnitDiffItem(
+                        unit_id=draft_unit.unit_id,
+                        change=UnitChangeKind.unchanged_unit,
+                        draft_title=draft_unit.unit_title,
+                        catalog_title=catalog_unit.unit_title,
+                        knowledge_points=[],
+                    )
+                )
+            continue
+
         kp_diffs: list[KpDiffItem] = []
 
         if catalog_unit is None:

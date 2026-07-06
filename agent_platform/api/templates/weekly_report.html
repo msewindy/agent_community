@@ -1,0 +1,111 @@
+<div class="toolbar">
+  <label>学生 <select id="studentSelect"><option value="">加载中…</option></select></label>
+  <label>周期（天） <input id="days" type="number" value="7" min="1" max="90" style="min-width:5rem" /></label>
+  <button type="button" id="btnLoad">查看报告</button>
+  <button type="button" id="btnSave" class="secondary">生成并保存</button>
+</div>
+<div id="message"></div>
+<div id="reportRoot"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function showMsg(text, ok) {
+    const el = $("message");
+    if (!text) { el.textContent = ""; el.className = ""; return; }
+    el.className = "msg " + (ok ? "ok" : "err");
+    el.textContent = text;
+  }
+  function currentStudentId() { return $("studentSelect").value.trim(); }
+  function pct(v) { return v == null ? "—" : Math.round(v * 100) + "%"; }
+
+  function renderReport(data) {
+    const vol = data.volume || {};
+    const ev = data.evaluation || {};
+    const recs = data.recommendations || [];
+    const dims = (ev.dimension_scores || data.dimension_scores || []).filter(d => d.signal_count > 0);
+
+    let html = `<div class="card report-section">
+      <h2>学习量</h2>
+      <div class="report-hero">
+        <div class="hero-stat"><div class="num">${vol.attempts_total ?? data.attempts_total ?? 0}</div><div class="lbl">练习次数</div></div>
+        <div class="hero-stat"><div class="num">${vol.active_days ?? 0}</div><div class="lbl">活跃天数</div></div>
+        <div class="hero-stat"><div class="num">${pct(vol.correct_rate ?? data.correct_rate)}</div><div class="lbl">总正确率</div></div>
+        <div class="hero-stat"><div class="num">${vol.gaps_mastered_period ?? 0}</div><div class="lbl">新掌握 KP</div></div>
+        <div class="hero-stat"><div class="num">${vol.gaps_active ?? 0}</div><div class="lbl">加强中 KP</div></div>
+      </div>`;
+    if ((vol.by_subject || []).length) {
+      html += '<table class="data"><thead><tr><th>学科</th><th>练习</th><th>正确率</th></tr></thead><tbody>';
+      vol.by_subject.forEach(s => {
+        if (!s.attempts) return;
+        html += `<tr><td>${s.subject}</td><td>${s.attempts}</td><td>${pct(s.correct_rate)}</td></tr>`;
+      });
+      html += "</tbody></table>";
+    }
+    if ((vol.units_practiced || []).length) {
+      html += '<p class="sub" style="margin-top:0.75rem">本年级练习过的单元：</p><ul>';
+      vol.units_practiced.forEach(u => {
+        html += `<li>${u.subject} · ${u.unit_title} — ${u.attempts} 次 / ${pct(u.correct_rate)}</li>`;
+      });
+      html += "</ul>";
+    }
+    html += "</div>";
+
+    html += `<div class="card report-section"><h2>评价</h2>
+      <p><strong>${ev.headline || data.summary || ""}</strong></p>`;
+    if ((ev.mastered || []).length) html += `<p>✅ 已掌握：${ev.mastered.join("、")}</p>`;
+    if ((ev.needs_work || []).length) html += `<p>📌 需加强：${ev.needs_work.join("；")}</p>`;
+    if (dims.length) {
+      html += '<div style="margin-top:0.75rem"><strong>能力与习惯</strong>';
+      dims.forEach(d => {
+        const w = Math.min(100, d.signal_count * 15);
+        html += `<div class="dim-bar"><div class="dim-label"><span>${d.title}</span><span>${d.signal_count} 次信号</span></div>
+          <div class="dim-track"><div class="dim-fill" style="width:${w}%"></div></div></div>`;
+      });
+      html += "</div>";
+    }
+    (ev.behavior_notes || data.behavior_notes || []).forEach(n => { html += `<p class="hint">${n}</p>`; });
+    html += "</div>";
+
+    html += `<div class="card report-section"><h2>后续建议</h2><ul class="rec-list">`;
+    recs.forEach(r => {
+      html += `<li>${r.text}<span class="rec-basis">${r.basis || ""}</span></li>`;
+    });
+    if (!recs.length && (data.next_steps || []).length) {
+      data.next_steps.forEach(s => { html += `<li>${s}</li>`; });
+    }
+    html += "</ul></div>";
+
+    $("reportRoot").innerHTML = html;
+  }
+
+  async function loadReport(save) {
+    const sid = currentStudentId();
+    const days = $("days").value || "7";
+    if (!sid) { showMsg("请选择学生", false); return; }
+    const url = save
+      ? `/api/students/${encodeURIComponent(sid)}/parent-report/generate?days=${days}`
+      : `/api/students/${encodeURIComponent(sid)}/parent-report?days=${days}`;
+    const res = await fetch(url, save ? { method: "POST" } : {});
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showMsg("加载失败: " + (err.detail || res.status), false);
+      return;
+    }
+    const data = save ? (await res.json()).report : await res.json();
+    renderReport(data);
+    showMsg(save ? "报告已生成并保存" : "报告已加载", true);
+  }
+
+  async function loadStudents() {
+    const res = await fetch("/api/students");
+    if (!res.ok) return;
+    const students = await res.json();
+    $("studentSelect").innerHTML = students.map(s => `<option value="${s.student_id}">${s.display_name}（${s.grade}）</option>`).join("");
+    await loadReport(false);
+  }
+
+  $("btnLoad").onclick = () => loadReport(false);
+  $("btnSave").onclick = () => loadReport(true);
+  $("days").onchange = () => loadReport(false);
+  loadStudents();
+</script>

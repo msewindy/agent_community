@@ -34,8 +34,10 @@ def _load_hermes_env() -> None:
 _load_hermes_env()
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
+
+from agent_platform.learning.bootstrap_family_alpha import ensure_family_alpha_content
 
 from agent_platform.perception.vision_session import VisionSessionStore
 from agent_platform.perception.vision_understand import understand_image
@@ -148,11 +150,13 @@ def create_app(
             _vlm_holder["vlm"] = build_vlm_adapter({"vision": pcfg.get("vision") or {}})
         return _vlm_holder["vlm"]
 
-    app = FastAPI(title="Student Jarvis Chat", version="0.4.0-slice12-vision")
+    app = FastAPI(title="Student Jarvis Chat", version="0.5.0-family-alpha-p0")
+
+    _bootstrap = ensure_family_alpha_content()
 
     @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    def health() -> dict:
+        return {"status": "ok", "bootstrap": _bootstrap.to_dict()}
 
     @app.get("/", response_class=HTMLResponse)
     def chat_page() -> str:
@@ -182,6 +186,52 @@ def create_app(
             reply=reply.text,
             session_id=reply.session_id,
             elapsed_ms=reply.elapsed_ms,
+        )
+
+    @app.post("/api/chat/stream")
+    def chat_stream(body: ChatIn) -> StreamingResponse:
+        """SSE：轮询 hermes 输出文件，逐段推送回复文本。"""
+        import json
+
+        env_extra: dict[str, str] = {}
+        if body.vision_id:
+            rec = _vision_store.get(body.vision_id)
+            if rec is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"vision 已过期或不存在: {body.vision_id}",
+                )
+            env_extra[VISION_ID_ENV] = body.vision_id
+
+        def event_gen():
+            try:
+                for ev in _bridge.stream_ask(
+                    body.message,
+                    session_id=body.session_id,
+                    env_extra=env_extra or None,
+                ):
+                    if ev.text_delta:
+                        payload = {"delta": ev.text_delta}
+                        yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+                    if ev.done:
+                        payload = {
+                            "done": True,
+                            "session_id": ev.session_id,
+                            "elapsed_ms": ev.elapsed_ms,
+                            "error": ev.error,
+                        }
+                        yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+            except HermesCancelledError:
+                payload = {"done": True, "error": "cancelled"}
+                yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+            except Exception as exc:  # noqa: BLE001
+                payload = {"done": True, "error": str(exc)}
+                yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+        return StreamingResponse(
+            event_gen(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
 
     @app.post("/api/chat/abort")

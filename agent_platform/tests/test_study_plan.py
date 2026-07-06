@@ -32,7 +32,7 @@ def student(ctx_svc: StudentContextService) -> str:
 
 def test_four_remediation_skills_loaded() -> None:
     skills = load_remediation_skills()
-    assert len(skills) == 4
+    assert len(skills) == 5
     assert "remediation/concept_v1" in list_skill_ids()
 
 

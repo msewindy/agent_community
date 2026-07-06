@@ -33,12 +33,23 @@ class CatalogMergeReport(BaseModel):
     knowledge_points_kept: int = 0
 
 
+class KpWikiSyncSummary(BaseModel):
+    pages_synced: int = 0
+    page_paths: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
 class CatalogApproveResult(BaseModel):
     job_id: str
     catalog_path: str
     backup_path: str
     audit_path: str
     merge_report: CatalogMergeReport
+    catalog_merged: bool = True
+    questions_imported: int = 0
+    question_import_warnings: list[str] = Field(default_factory=list)
+    question_archive_path: Optional[str] = None
+    wiki_sync: KpWikiSyncSummary = Field(default_factory=KpWikiSyncSummary)
 
 
 def _conflict_map(
@@ -206,6 +217,13 @@ class KpCatalogWriter:
         self._path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         self._svc._catalog = KpCatalog.model_validate(payload)  # noqa: SLF001
         self._svc._by_unit = {u.unit_id: u for u in self._svc._catalog.units}  # noqa: SLF001
+        try:
+            from agent_platform.learning import kp_catalog as kp_catalog_mod
+
+            if kp_catalog_mod._shared_catalog is self._svc:  # noqa: SLF001
+                kp_catalog_mod._shared_catalog_mtime = self._path.stat().st_mtime  # noqa: SLF001
+        except Exception:  # noqa: BLE001
+            pass
         return backup_path
 
     def write_audit_record(

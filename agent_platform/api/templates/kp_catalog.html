@@ -1,232 +1,243 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>知识点库</title>
-  <style>
-    :root { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f6f7f9; }
-    body { margin: 0; min-height: 100vh; }
-    .topbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
-    .topbar h1 { font-size: 1.25rem; margin: 0; }
-    .nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .nav a { color: #2563eb; text-decoration: none; font-size: 0.88rem; padding: 0.35rem 0.65rem; border-radius: 6px; border: 1px solid #dbeafe; background: #eff6ff; }
-    .nav a:hover { background: #dbeafe; }
-    .nav a.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-    button { cursor: pointer; background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 0.45rem 0.85rem; font-size: 0.92rem; }
-    button.secondary { background: #64748b; }
-    .main { padding: 1rem 1.25rem; max-width: 1100px; margin: 0 auto; }
-    .card { background: #fff; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-    .card h2 { font-size: 0.95rem; margin: 0 0 0.65rem; color: #334155; }
-    .filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; font-size: 0.88rem; }
-    .filters label { display: flex; align-items: center; gap: 0.35rem; }
-    select, input[type=search] { font-size: 0.88rem; padding: 0.35rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; }
-    input[type=search] { min-width: 12rem; }
-    .stats { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.88rem; color: #475569; }
-    .stats strong { color: #1e293b; }
-    .hint { color: #64748b; font-size: 0.82rem; }
-    .subject-block { margin-bottom: 1.25rem; }
-    .subject-block h3 { font-size: 1rem; margin: 0 0 0.5rem; color: #1e293b; }
-    .grade-label { font-size: 0.85rem; color: #64748b; margin: 0.5rem 0; }
-    .unit-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 0.85rem; margin-bottom: 0.75rem; background: #fafbfc; }
-    .unit-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.35rem; margin-bottom: 0.5rem; }
-    .unit-head strong { font-size: 0.92rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-    th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid #eef2f7; }
-    th { color: #64748b; font-weight: 600; font-size: 0.78rem; background: #f8fafc; }
-    code { font-size: 0.8rem; background: #f1f5f9; padding: 0.1rem 0.35rem; border-radius: 4px; }
-    .empty { color: #64748b; text-align: center; padding: 2rem 0; }
-    .msg { margin: 0.75rem 1.25rem 0; padding: 0.55rem 0.75rem; border-radius: 6px; font-size: 0.88rem; background: #fee2e2; }
-  </style>
-</head>
-<body>
-  <header class="topbar">
-    <h1>知识点库</h1>
-    <nav class="nav">
-      <a href="/kp-catalog" class="active">浏览知识库</a>
-      <a href="/kp-review">入库审核</a>
-      <button type="button" id="btnRefresh" class="secondary" style="padding:0.35rem 0.65rem;font-size:0.85rem">刷新</button>
-    </nav>
-  </header>
+<div id="message"></div>
 
-  <div id="message"></div>
+<div class="card">
+  <h2>筛选</h2>
+  <div class="toolbar" style="margin-bottom:0">
+    <label>学科 <select id="filterSubject"><option value="">全部</option></select></label>
+    <label>年级
+      <select id="filterGrade">
+        <option value="">全部</option>
+        <option value="1">1 年级</option>
+        <option value="2">2 年级</option>
+        <option value="3">3 年级</option>
+        <option value="4">4 年级</option>
+        <option value="5">5 年级</option>
+        <option value="6">6 年级</option>
+      </select>
+    </label>
+    <label>搜索 <input id="filterSearch" type="search" placeholder="单元 / 知识点 / 编号" /></label>
+    <button type="button" id="btnRefresh" class="secondary">刷新</button>
+  </div>
+</div>
 
-  <main class="main">
-    <div class="card">
-      <h2>筛选</h2>
-      <div class="filters">
-        <label>学科
-          <select id="filterSubject"><option value="">全部</option></select>
-        </label>
-        <label>年级
-          <select id="filterGrade">
-            <option value="">全部</option>
-            <option value="1">1 年级</option>
-            <option value="2">2 年级</option>
-            <option value="3">3 年级</option>
-            <option value="4">4 年级</option>
-            <option value="5">5 年级</option>
-            <option value="6">6 年级</option>
-          </select>
-        </label>
-        <label>搜索
-          <input id="filterSearch" type="search" placeholder="单元名 / 知识点 / 编号" />
-        </label>
-      </div>
-    </div>
+<div class="card" id="summaryCard">
+  <h2>概览</h2>
+  <div class="stats-row" id="stats">加载中…</div>
+  <div class="hint" id="catalogPath" style="margin-top:0.5rem"></div>
+</div>
 
-    <div class="card" id="summaryCard">
-      <h2>概览</h2>
-      <div class="stats" id="stats">加载中…</div>
-      <div class="hint" id="catalogPath" style="margin-top:0.5rem"></div>
-    </div>
+<div class="card" id="export">
+  <h2>导出草稿</h2>
+  <p class="sub">导出为可编辑 <code>.kp.md</code>，修改后在「知识点入库」重新上传。</p>
+  <div class="toolbar" style="margin-bottom:0">
+    <label>学科 <select id="exportSubject"><option value="">请先加载</option></select></label>
+    <label>年级
+      <select id="exportGrade">
+        <option value="1">1 年级</option>
+        <option value="2">2 年级</option>
+        <option value="3" selected>3 年级</option>
+        <option value="4">4 年级</option>
+        <option value="5">5 年级</option>
+        <option value="6">6 年级</option>
+      </select>
+    </label>
+    <label style="flex-direction:row;align-items:center;gap:0.35rem;padding-bottom:0.45rem">
+      <input type="checkbox" id="exportQuestions" checked /> 含练习题
+    </label>
+    <button type="button" id="btnExport">导出整册草稿</button>
+  </div>
+</div>
 
-    <div class="card">
-      <h2>结构树</h2>
-      <div id="treeRoot"><div class="empty">加载中…</div></div>
-    </div>
-  </main>
+<div class="card">
+  <h2>知识结构</h2>
+  <div id="treeRoot" class="kp-tree"><div class="hint" style="padding:1rem 0">加载中…</div></div>
+</div>
 
-  <script>
-    const $ = (id) => document.getElementById(id);
-    let catalogInfo = null;
-    let fullTree = null;
+<script>
+  const $ = (id) => document.getElementById(id);
+  let catalogInfo = null;
+  let fullTree = null;
 
-    function showMsg(text) {
-      const el = $("message");
-      if (!text) { el.textContent = ""; el.className = ""; return; }
-      el.className = "msg";
-      el.textContent = text;
-    }
+  function showMsg(text, ok) {
+    const el = $("message");
+    if (!text) { el.textContent = ""; el.className = ""; return; }
+    el.className = "msg " + (ok ? "ok" : "err");
+    el.textContent = text;
+  }
 
-    function countTree(tree) {
-      let units = 0, kps = 0;
-      (tree.subjects || []).forEach(s => (s.grades || []).forEach(g => (g.units || []).forEach(u => {
-        units += 1;
-        kps += (u.knowledge_points || []).length;
-      })));
-      return { units, kps };
-    }
+  function countTree(tree) {
+    let units = 0, kps = 0;
+    (tree.subjects || []).forEach(s => (s.grades || []).forEach(g => (g.units || []).forEach(u => {
+      units += 1;
+      kps += (u.knowledge_points || []).length;
+    })));
+    return { units, kps };
+  }
 
-    function matchesSearch(text, q) {
-      if (!q) return true;
-      return text.toLowerCase().includes(q.toLowerCase());
-    }
+  function unitMatchesSearch(unit, q) {
+    if (!q) return true;
+    const blob = [unit.unit_id, unit.unit_title, unit.textbook_ref || ""].join(" ").toLowerCase();
+    if (blob.includes(q.toLowerCase())) return true;
+    return (unit.knowledge_points || []).some(kp =>
+      (kp.knowledge_point_id + " " + kp.title).toLowerCase().includes(q.toLowerCase())
+    );
+  }
 
-    function unitMatchesSearch(unit, q) {
-      if (!q) return true;
-      const blob = [unit.unit_id, unit.unit_title, unit.textbook_ref || ""].join(" ");
-      if (matchesSearch(blob, q)) return true;
-      return (unit.knowledge_points || []).some(kp =>
-        matchesSearch(kp.knowledge_point_id + " " + kp.title, q)
-      );
-    }
-
-    function filterTree(tree, subject, grade, search) {
-      const q = (search || "").trim();
-      const subjects = [];
-      (tree.subjects || []).forEach(subj => {
-        if (subject && subj.subject !== subject) return;
-        const grades = [];
-        (subj.grades || []).forEach(g => {
-          if (grade && String(g.grade) !== String(grade)) return;
-          const units = (g.units || []).filter(u => unitMatchesSearch(u, q));
-          if (units.length) grades.push({ grade: g.grade, units });
-        });
-        if (grades.length) subjects.push({ subject: subj.subject, grades });
+  function filterTree(tree, subject, grade, search) {
+    const q = (search || "").trim().toLowerCase();
+    const subjects = [];
+    (tree.subjects || []).forEach(subj => {
+      if (subject && subj.subject !== subject) return;
+      const grades = [];
+      (subj.grades || []).forEach(g => {
+        if (grade && String(g.grade) !== String(grade)) return;
+        const units = (g.units || []).filter(u => unitMatchesSearch(u, q));
+        if (units.length) grades.push({ grade: g.grade, units });
       });
-      return { subjects };
-    }
+      if (grades.length) subjects.push({ subject: subj.subject, grades });
+    });
+    return { subjects };
+  }
 
-    function renderStats(tree) {
-      const { units, kps } = countTree(tree);
-      const subjCount = (tree.subjects || []).length;
-      $("stats").innerHTML = `
-        <span><strong>${subjCount}</strong> 个学科</span>
-        <span><strong>${units}</strong> 个单元</span>
-        <span><strong>${kps}</strong> 个知识点</span>
-        ${catalogInfo ? `<span>学段：<strong>${catalogInfo.school_stage === "primary" ? "小学" : catalogInfo.school_stage}</strong></span>` : ""}`;
-      if (catalogInfo) {
-        $("catalogPath").textContent = `数据文件：${catalogInfo.catalog_path} · 版本 ${catalogInfo.schema_version}`;
-      }
+  function renderStats(tree) {
+    const { units, kps } = countTree(tree);
+    const subjCount = (tree.subjects || []).length;
+    $("stats").innerHTML = `
+      <span class="stat-pill"><strong>${subjCount}</strong> 学科</span>
+      <span class="stat-pill"><strong>${units}</strong> 单元</span>
+      <span class="stat-pill"><strong>${kps}</strong> 知识点</span>`;
+    if (catalogInfo) {
+      $("catalogPath").textContent = `数据：${catalogInfo.catalog_path} · v${catalogInfo.schema_version}`;
     }
+  }
 
-    function renderTree(tree) {
-      const root = $("treeRoot");
-      if (!tree.subjects || !tree.subjects.length) {
-        root.innerHTML = '<div class="empty">无匹配内容</div>';
+  function renderTree(tree) {
+    const root = $("treeRoot");
+    if (!tree.subjects?.length) {
+      root.innerHTML = '<div class="hint" style="padding:1rem 0">无匹配内容</div>';
+      return;
+    }
+    let html = "";
+    tree.subjects.forEach(subj => {
+      html += `<details class="tree-subject" open><summary>${subj.subject}<span class="tree-meta">${subj.grades.length} 个年级</span></summary><div class="tree-body">`;
+      subj.grades.forEach(g => {
+        html += `<details class="tree-grade" open><summary>${g.grade} 年级<span class="tree-meta">${g.units.length} 单元</span></summary><div class="tree-body">`;
+        g.units.forEach(u => {
+          const kpCount = (u.knowledge_points || []).length;
+          html += `<details class="tree-unit"><summary>${u.unit_title}<span class="tree-meta">${kpCount} KP · <code>${u.unit_id}</code></span></summary>
+            <div class="tree-body">
+              <div class="unit-actions">
+                <button type="button" class="small secondary btn-export-unit"
+                  data-subject="${encodeURIComponent(subj.subject)}"
+                  data-grade="${g.grade}"
+                  data-unit-id="${u.unit_id}">导出本单元草稿</button>
+                ${u.textbook_ref ? `<span class="hint">${u.textbook_ref}</span>` : ""}
+              </div>`;
+          (u.knowledge_points || []).forEach(kp => {
+            html += `<div class="kp-leaf"><code>${kp.knowledge_point_id}</code><span>${kp.title}</span></div>`;
+          });
+          html += `</div></details>`;
+        });
+        html += `</div></details>`;
+      });
+      html += `</div></details>`;
+    });
+    root.innerHTML = html;
+  }
+
+  function populateSubjectFilter(tree) {
+    const sel = $("filterSubject");
+    const exportSel = $("exportSubject");
+    const current = sel.value;
+    const exportCurrent = exportSel.value;
+    const opts = ['<option value="">全部</option>'];
+    const exportOpts = [];
+    (tree.subjects || []).forEach(s => {
+      opts.push(`<option value="${s.subject}">${s.subject}</option>`);
+      exportOpts.push(`<option value="${s.subject}">${s.subject}</option>`);
+    });
+    sel.innerHTML = opts.join("");
+    exportSel.innerHTML = exportOpts.join("") || '<option value="">无学科</option>';
+    if ([...sel.options].some(o => o.value === current)) sel.value = current;
+    if ([...exportSel.options].some(o => o.value === exportCurrent)) exportSel.value = exportCurrent;
+    else if (exportOpts.length) exportSel.selectedIndex = 0;
+  }
+
+  function buildExportUrl(subject, grade, unitId) {
+    const q = new URLSearchParams({
+      subject,
+      grade: String(grade),
+      include_questions: $("exportQuestions").checked ? "true" : "false",
+    });
+    if (unitId) q.set("unit_id", unitId);
+    return `/api/kp/catalog/export?${q}`;
+  }
+
+  function parseFilename(disposition) {
+    if (!disposition) return "export.kp.md";
+    const mStar = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (mStar) return decodeURIComponent(mStar[1]);
+    const m = disposition.match(/filename="([^"]+)"/i);
+    return m ? m[1] : "export.kp.md";
+  }
+
+  async function startExport(subject, grade, unitId) {
+    if (!subject) { showMsg("请选择学科", false); return; }
+    showMsg("正在导出…", true);
+    try {
+      const res = await fetch(buildExportUrl(subject, grade, unitId || null));
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showMsg("导出失败: " + (err.detail || res.status), false);
         return;
       }
-      let html = "";
-      tree.subjects.forEach(subj => {
-        html += `<div class="subject-block"><h3>${subj.subject}</h3>`;
-        subj.grades.forEach(g => {
-          html += `<div class="grade-label">${g.grade} 年级 · ${g.units.length} 个单元</div>`;
-          g.units.forEach(u => {
-            const kpCount = (u.knowledge_points || []).length;
-            html += `<div class="unit-card">
-              <div class="unit-head">
-                <div><strong>${u.unit_title}</strong> <code>${u.unit_id}</code></div>
-                <span class="hint">${kpCount} 个知识点${u.textbook_ref ? " · " + u.textbook_ref : ""}</span>
-              </div>
-              <table><thead><tr><th>知识点编号</th><th>标题</th></tr></thead><tbody>`;
-            (u.knowledge_points || []).forEach(kp => {
-              html += `<tr><td><code>${kp.knowledge_point_id}</code></td><td>${kp.title}</td></tr>`;
-            });
-            html += "</tbody></table></div>";
-          });
-        });
-        html += "</div>";
-      });
-      root.innerHTML = html;
+      const blob = await res.blob();
+      const filename = parseFilename(res.headers.get("Content-Disposition"));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showMsg("已下载 " + filename, true);
+    } catch (e) {
+      showMsg("导出失败: " + e.message, false);
     }
+  }
 
-    function populateSubjectFilter(tree) {
-      const sel = $("filterSubject");
-      const current = sel.value;
-      const opts = ['<option value="">全部</option>'];
-      (tree.subjects || []).forEach(s => {
-        opts.push(`<option value="${s.subject}">${s.subject}</option>`);
-      });
-      sel.innerHTML = opts.join("");
-      if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  function applyFilters() {
+    if (!fullTree) return;
+    const filtered = filterTree(fullTree, $("filterSubject").value, $("filterGrade").value, $("filterSearch").value);
+    renderStats(filtered);
+    renderTree(filtered);
+  }
+
+  async function loadCatalog() {
+    showMsg("");
+    try {
+      const [infoRes, treeRes] = await Promise.all([
+        fetch("/api/kp/catalog/info"),
+        fetch("/api/kp/catalog/tree"),
+      ]);
+      if (!infoRes.ok || !treeRes.ok) throw new Error("加载失败");
+      catalogInfo = await infoRes.json();
+      fullTree = await treeRes.json();
+      populateSubjectFilter(fullTree);
+      applyFilters();
+    } catch (e) {
+      showMsg("加载知识库失败", false);
+      $("treeRoot").innerHTML = '<div class="hint">加载失败</div>';
     }
+  }
 
-    function applyFilters() {
-      if (!fullTree) return;
-      const filtered = filterTree(
-        fullTree,
-        $("filterSubject").value,
-        $("filterGrade").value,
-        $("filterSearch").value
-      );
-      renderStats(filtered);
-      renderTree(filtered);
-    }
-
-    async function loadCatalog() {
-      showMsg("");
-      try {
-        const [infoRes, treeRes] = await Promise.all([
-          fetch("/api/kp/catalog/info"),
-          fetch("/api/kp/catalog/tree"),
-        ]);
-        if (!infoRes.ok || !treeRes.ok) throw new Error("加载失败");
-        catalogInfo = await infoRes.json();
-        fullTree = await treeRes.json();
-        populateSubjectFilter(fullTree);
-        applyFilters();
-      } catch (e) {
-        showMsg("加载知识库失败，请确认服务已启动");
-        $("treeRoot").innerHTML = '<div class="empty">加载失败</div>';
-      }
-    }
-
-    $("filterSubject").addEventListener("change", applyFilters);
-    $("filterGrade").addEventListener("change", applyFilters);
-    $("filterSearch").addEventListener("input", applyFilters);
-    $("btnRefresh").addEventListener("click", loadCatalog);
-    loadCatalog();
-  </script>
-</body>
-</html>
+  $("filterSubject").addEventListener("change", applyFilters);
+  $("filterGrade").addEventListener("change", applyFilters);
+  $("filterSearch").addEventListener("input", applyFilters);
+  $("btnRefresh").addEventListener("click", loadCatalog);
+  $("btnExport").addEventListener("click", () => startExport($("exportSubject").value, $("exportGrade").value, null));
+  $("treeRoot").addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".btn-export-unit");
+    if (!btn) return;
+    startExport(decodeURIComponent(btn.dataset.subject), btn.dataset.grade, btn.dataset.unitId);
+  });
+  loadCatalog();
+</script>

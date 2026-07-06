@@ -41,10 +41,40 @@ class LearningProfileService:
         self._triage = triage_svc or PhotoTriageService(data_root=data_root)
         self._catalog = catalog or KpCatalogService()
 
-    def get_profile(self, student_id: str, *, gap_limit: int = 50) -> LearningProfileOut:
+    def get_profile(
+        self,
+        student_id: str,
+        *,
+        gap_limit: int = 50,
+        unit_id: Optional[str] = None,
+        subject: Optional[str] = None,
+        grade: Optional[int] = None,
+        include_pending: bool = True,
+    ) -> LearningProfileOut:
         gap_map = self._gap.get(student_id)
-        gaps = sorted(gap_map.gaps, key=lambda g: (-g.stats.total_wrong, g.gap_id))[:gap_limit]
-        pending = self._triage.inbox_list(student_id, status="pending")
+        gaps = sorted(gap_map.gaps, key=lambda g: (-g.stats.total_wrong, g.gap_id))
+        kp_index = self._catalog.kp_index()
+
+        if unit_id:
+            unit = self._catalog.get_unit(unit_id)
+            kp_ids = {kp.knowledge_point_id for kp in unit.knowledge_points}
+            gaps = [g for g in gaps if g.knowledge_point_id in kp_ids]
+        else:
+            if subject or grade is not None:
+                filtered: list = []
+                for g in gaps:
+                    u = kp_index.get(g.knowledge_point_id)
+                    if u is None:
+                        continue
+                    if subject and u.subject != subject:
+                        continue
+                    if grade is not None and u.grade != grade:
+                        continue
+                    filtered.append(g)
+                gaps = filtered
+
+        gaps = gaps[:gap_limit]
+        pending = self._triage.inbox_list(student_id, status="pending") if include_pending else []
         cands = self._triage.candidates(student_id)
         kp_choices = [
             {"kp_id": c.kp_id, "title": c.title, "subject": c.subject}

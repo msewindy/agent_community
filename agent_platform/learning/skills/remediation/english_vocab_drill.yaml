@@ -1,0 +1,11 @@
+skill_id: remediation/english_vocab_drill
+title: 英语词汇微练
+duration_min: 8
+error_codes:
+  - SPELLING_ERROR
+  - VOCAB_GAP
+procedure: |
+  1. 用中文说清这个英文词/句子的意思。
+  2. 让孩子跟读或拼读一遍（可拆音节）。
+  3. 出 1 个同类词或填空，口述后再写/打字。
+  4. 错在拼写时，指出字母顺序，不要一次给完整答案。

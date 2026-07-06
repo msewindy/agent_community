@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{PAGE_TITLE}} · 家长端</title>
+  <style>{{INLINE_CSS}}</style>
+  {{EXTRA_HEAD}}
+</head>
+<body class="panel-app {{BODY_CLASS}}">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <strong>学生 Jarvis</strong>
+        <span>家庭 Alpha · 家长端</span>
+      </div>
+      <nav class="sidebar-nav">{{SIDEBAR}}</nav>
+    </aside>
+    <div class="main-panel">
+      <header class="page-header">
+        <h1>{{PAGE_TITLE}}</h1>
+      </header>
+      <div class="page-body {{BODY_CLASS_PAGE}}">{{CONTENT}}</div>
+    </div>
+  </div>
+  {{EXTRA_SCRIPT}}
+</body>
+</html>

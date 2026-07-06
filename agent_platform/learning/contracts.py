@@ -35,6 +35,7 @@ class Curriculum(_LearningModel):
     unit_title: str
     textbook_ref: Optional[str] = None
     grade_level: Optional[int] = Field(default=None, ge=1, le=6)
+    updated_by: Optional[Literal["jarvis", "parent", "onboarding"]] = None
 
 
 class ContextFocus(_LearningModel):
@@ -339,6 +340,7 @@ class StudentOnboardingProfile(_LearningModel):
     grade_level: int = Field(ge=1, le=6)
     primary_subject: str = "数学"
     active_unit_id: str
+    preferred_name: Optional[str] = None
     self_assessment: StudentSelfAssessment = Field(default_factory=StudentSelfAssessment)
 
 
@@ -353,6 +355,44 @@ class ParentReportEvidence(_LearningModel):
     label: str
     attempt_id: Optional[str] = None
     gap_id: Optional[str] = None
+
+
+class SubjectVolume(_LearningModel):
+    subject: str
+    attempts: int = 0
+    correct_rate: Optional[float] = None
+
+
+class UnitPracticeSummary(_LearningModel):
+    unit_id: str
+    unit_title: str
+    subject: str
+    grade: int
+    attempts: int = 0
+    correct_rate: Optional[float] = None
+
+
+class ReportVolume(_LearningModel):
+    attempts_total: int = 0
+    active_days: int = 0
+    correct_rate: Optional[float] = None
+    by_subject: list[SubjectVolume] = Field(default_factory=list)
+    units_practiced: list[UnitPracticeSummary] = Field(default_factory=list)
+    gaps_mastered_period: int = 0
+    gaps_active: int = 0
+
+
+class ReportEvaluation(_LearningModel):
+    headline: str = ""
+    mastered: list[str] = Field(default_factory=list)
+    needs_work: list[str] = Field(default_factory=list)
+    dimension_scores: list[DimensionScore] = Field(default_factory=list)
+    behavior_notes: list[str] = Field(default_factory=list)
+
+
+class ReportRecommendation(_LearningModel):
+    text: str
+    basis: str = ""
 
 
 class ParentWeeklyReport(_LearningModel):
@@ -372,6 +412,9 @@ class ParentWeeklyReport(_LearningModel):
     evidence: list[ParentReportEvidence] = Field(default_factory=list)
     attempts_total: int = 0
     correct_rate: Optional[float] = None
+    volume: Optional[ReportVolume] = None
+    evaluation: Optional[ReportEvaluation] = None
+    recommendations: list[ReportRecommendation] = Field(default_factory=list)
 
 
 class SafetyCheckResult(_LearningModel):

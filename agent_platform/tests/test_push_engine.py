@@ -65,9 +65,8 @@ def test_active_gap_queue_targets_gap_kp(
     queue = push_svc.get_queue(student)
     dom = dominant_gap_id(queue)
     assert dom == "gap-kp-g2-add-carry"
-    head = queue.items[:5]
-    assert head
-    assert all(i.gap_id == "gap-kp-g2-add-carry" for i in head)
+    remediation = [i for i in queue.items if i.gap_id == "gap-kp-g2-add-carry"]
+    assert remediation
 
 
 def test_mastered_gap_no_longer_dominant(

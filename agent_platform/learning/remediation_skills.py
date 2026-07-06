@@ -14,9 +14,13 @@ _SKILLS_DIR = Path(__file__).resolve().parent / "skills" / "remediation"
 _DEFAULT_BY_ERROR = {
     "CONCEPT_DOMAIN": "remediation/concept_v1",
     "READING_ERROR": "remediation/concept_v1",
+    "EN_READING_ERROR": "remediation/concept_v1",
     "MISS_MULTIPLY_AFTER_DENOM": "remediation/procedure_checklist",
     "PROCEDURE_ERROR": "remediation/procedure_checklist",
     "CALCULATION_ERROR": "remediation/procedure_checklist",
+    "SPELLING_ERROR": "remediation/english_vocab_drill",
+    "VOCAB_GAP": "remediation/english_vocab_drill",
+    "GRAMMAR_ERROR": "remediation/concept_v1",
 }
 
 

@@ -18,6 +18,7 @@ from agent_platform.learning.contracts import (
 from agent_platform.learning.kp_catalog import KpCatalogService
 from agent_platform.learning.store import layout_for
 from agent_platform.learning.student_context import StudentContextService
+from agent_platform.learning.subject_pilot import pilot_unit_id
 
 
 class OnboardingService:
@@ -67,7 +68,7 @@ class OnboardingService:
         pilot = self._cfg.get("pilot") or {}
         units = pilot.get("units") or {}
         if active_unit_id is None:
-            active_unit_id = units.get("math") if primary_subject == "数学" else units.get("chinese")
+            active_unit_id = pilot_unit_id(units, primary_subject)
         if not active_unit_id:
             active_unit_id = (self._cfg.get("default_curriculum") or {}).get("unit_id")
         self._catalog.assert_student_may_access_unit(grade_level, str(active_unit_id))
@@ -106,3 +107,16 @@ class OnboardingService:
         lay = layout_for(student_id, self._data_root)
         self._save_profile(lay.profile_path, profile)
         return profile
+
+    def sync_active_unit(self, student_id: str, unit_id: str, *, subject: Optional[str] = None) -> None:
+        """Keep onboarding profile aligned after parent-panel unit switch."""
+        try:
+            profile = self.load_profile(student_id)
+        except FileNotFoundError:
+            return
+        profile.active_unit_id = unit_id
+        profile.updated_at = utc_now()
+        if subject:
+            profile.primary_subject = subject
+        lay = layout_for(student_id, self._data_root)
+        self._save_profile(lay.profile_path, profile)

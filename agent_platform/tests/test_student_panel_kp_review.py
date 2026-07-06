@@ -52,14 +52,14 @@ def test_kp_review_page_and_catalog_tree(review_client) -> None:
     page = client.get("/kp-review")
     assert page.status_code == 200
     assert "知识点入库" in page.text
-    assert "新建提交" in page.text
+    assert "上传 .kp.md" in page.text
     assert "浏览知识库" in page.text
     assert "家长学情" not in page.text
 
     catalog_page = client.get("/kp-catalog")
     assert catalog_page.status_code == 200
-    assert "知识点库" in catalog_page.text
-    assert "结构树" in catalog_page.text
+    assert "浏览知识库" in catalog_page.text
+    assert "知识结构" in catalog_page.text
 
     info = client.get("/api/kp/catalog/info")
     assert info.status_code == 200
@@ -74,6 +74,24 @@ def test_kp_review_page_and_catalog_tree(review_client) -> None:
     assert payload["subjects"]
     math = next(s for s in payload["subjects"] if s["subject"] == "数学")
     assert math["grades"][0]["units"]
+
+
+def test_kp_format_template_and_reload(review_client) -> None:
+    client, _, catalog = review_client
+    tpl = client.get("/api/kp/format-template")
+    assert tpl.status_code == 200
+    assert "unit_id:" in tpl.text
+    assert "知识点" in tpl.text
+
+    guide = client.get("/api/kp/format-guide")
+    assert guide.status_code == 200
+    assert ".kp.md" in guide.text
+
+    before = client.get("/api/kp/catalog/info").json()["unit_count"]
+    reloaded = client.post("/api/kp/catalog/reload")
+    assert reloaded.status_code == 200
+    assert reloaded.json()["unit_count"] == before
+    assert catalog.catalog.units
 
 
 def test_catalog_tree_filter_by_subject(review_client) -> None:

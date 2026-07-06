@@ -54,6 +54,16 @@ def build_document_tree(parsed_draft: dict) -> list[dict[str, Any]]:
             }
             for kp in unit.get("knowledge_points") or []
         ]
+        questions = [
+            {
+                "question_id": q.get("question_id"),
+                "stem": q.get("stem"),
+                "knowledge_point_id": q.get("knowledge_point_id"),
+                "expected_answer": q.get("expected_answer"),
+                "default_error_code": q.get("default_error_code"),
+            }
+            for q in unit.get("questions") or []
+        ]
         units.append(
             {
                 "unit_id": unit.get("unit_id"),
@@ -61,6 +71,7 @@ def build_document_tree(parsed_draft: dict) -> list[dict[str, Any]]:
                 "textbook_chapter": unit.get("textbook_chapter"),
                 "unit_description": unit.get("unit_description"),
                 "knowledge_points": kps,
+                "questions": questions,
             }
         )
     return units
