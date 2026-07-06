@@ -16,6 +16,10 @@ _NAME_PATTERNS = (
     re.compile(r"名字[是为叫：:\s]+([^\s，,。/]{2,4})"),
     re.compile(r"叫[「『]?([^，。,\s」』]{2,4})"),
     re.compile(r"孩子[是为叫：:\s]+([^\s，,。/]{2,4})"),
+    re.compile(r"我是([^\s，,。/！!？?]{2,4})"),
+    re.compile(r"可以叫我([^\s，,。/！!？?]{2,4})"),
+    re.compile(r"叫我([^\s，,。/！!？?]{2,4})"),
+    re.compile(r"称呼我[为]?([^\s，,。/！!？?]{2,4})"),
     re.compile(r"([^\s，,。/]{2,4})[/／]\d+岁"),
     re.compile(r"刘([^\s，,。/]{2,3})[/／]"),
     re.compile(r"是([^\s，,。/]{2,3})[/／]"),
@@ -81,6 +85,54 @@ def _onboarding_preferred_name(student_id: str, data_root: Optional[Path]) -> Op
         return name or None
     except Exception:
         return None
+
+
+def memory_device_for_student(student_id: str, cfg: dict) -> Optional[str]:
+    return _memory_device_for_student(student_id, cfg)
+
+
+def resolve_student_friendly_name(
+    student_id: str,
+    cfg: dict,
+    *,
+    ctx: Optional[StudentContext] = None,
+    memory_svc=None,
+    data_root: Optional[Path] = None,
+) -> Optional[str]:
+    """Return display name if known; None if only student_id is available."""
+    resolved = resolve_student_display_name(
+        student_id,
+        cfg,
+        ctx=ctx,
+        memory_svc=memory_svc,
+        data_root=data_root,
+    )
+    if resolved and resolved != student_id:
+        return resolved
+    return None
+
+
+def student_list_label(
+    student_id: str,
+    cfg: dict,
+    *,
+    grade: str = "",
+    ctx: Optional[StudentContext] = None,
+    memory_svc=None,
+    data_root: Optional[Path] = None,
+) -> str:
+    """Parent-panel list label: prefer nickname, never show raw id as the only label."""
+    name = resolve_student_friendly_name(
+        student_id,
+        cfg,
+        ctx=ctx,
+        memory_svc=memory_svc,
+        data_root=data_root,
+    )
+    label = name or "未设置昵称"
+    if grade:
+        return f"{label}（{grade}）"
+    return label
 
 
 def resolve_student_display_name(

@@ -14,6 +14,7 @@ from agent_platform.learning.contracts import GapEntry
 from agent_platform.learning.gap_map import GapMapService
 from agent_platform.learning.kp_catalog import KpCatalogService
 from agent_platform.learning.photo_triage import PhotoTriageService, TriageEntry
+from agent_platform.learning.question_inbox import QuestionInboxEntry, QuestionInboxService
 
 
 class LearningProfileOut(BaseModel):
@@ -21,7 +22,11 @@ class LearningProfileOut(BaseModel):
     gaps: list[GapEntry] = Field(default_factory=list)
     pending_items: list[TriageEntry] = Field(
         default_factory=list,
-        description="尚未归类的题（学情的一部分，非独立收件箱）",
+        description="拍照后尚未归类的题",
+    )
+    pending_questions: list[QuestionInboxEntry] = Field(
+        default_factory=list,
+        description="课本/批量上传待审习题（补答案后导入题库）",
     )
     kp_choices: list[dict] = Field(
         default_factory=list,
@@ -35,10 +40,12 @@ class LearningProfileService:
         data_root: Optional[Path] = None,
         gap_svc: Optional[GapMapService] = None,
         triage_svc: Optional[PhotoTriageService] = None,
+        question_inbox_svc: Optional[QuestionInboxService] = None,
         catalog: Optional[KpCatalogService] = None,
     ) -> None:
         self._gap = gap_svc or GapMapService(data_root=data_root)
         self._triage = triage_svc or PhotoTriageService(data_root=data_root)
+        self._question_inbox = question_inbox_svc or QuestionInboxService(data_root=data_root)
         self._catalog = catalog or KpCatalogService()
 
     def get_profile(
@@ -75,6 +82,9 @@ class LearningProfileService:
 
         gaps = gaps[:gap_limit]
         pending = self._triage.inbox_list(student_id, status="pending") if include_pending else []
+        pending_questions = (
+            self._question_inbox.list_pending() if include_pending else []
+        )
         cands = self._triage.candidates(student_id)
         kp_choices = [
             {"kp_id": c.kp_id, "title": c.title, "subject": c.subject}
@@ -84,5 +94,6 @@ class LearningProfileService:
             student_id=student_id,
             gaps=gaps,
             pending_items=pending,
+            pending_questions=pending_questions,
             kp_choices=kp_choices,
         )

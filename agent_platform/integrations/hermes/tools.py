@@ -67,6 +67,18 @@ def agent_memory_write(args: dict, **kwargs) -> str:
     category = args.get("category") or "preference"
     kind = args.get("kind") or "preference"
     subject_key = args.get("subject_key")
+    device_id = args.get("device_id")
+    if not device_id:
+        try:
+            bootstrap_agent_platform()
+            from agent_platform.learning._config import load_student_learning_config, resolve_student_id
+            from agent_platform.learning.student_identity import memory_device_for_student
+
+            sid = resolve_student_id(args=args, kwargs=kwargs)
+            if sid:
+                device_id = memory_device_for_student(sid, load_student_learning_config())
+        except Exception:
+            device_id = None
 
     try:
         from agent_platform.memory.contracts import MemoryCategory, MemoryKind
@@ -74,7 +86,7 @@ def agent_memory_write(args: dict, **kwargs) -> str:
         svc = _get_service()
         rec = svc.write(
             content,
-            device_id=args.get("device_id"),
+            device_id=device_id,
             category=MemoryCategory(category),
             kind=MemoryKind(kind),
             subject_key=subject_key,

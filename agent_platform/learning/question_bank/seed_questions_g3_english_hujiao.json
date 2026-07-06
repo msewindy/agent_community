@@ -1,0 +1,268 @@
+{
+  "schema_version": "1.0.0",
+  "unit_id": "english-g3-u01",
+  "grade": 3,
+  "subject": "英语",
+  "questions": [
+    {
+      "question_id": "q-en3-u01-001",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-reading",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s your goal?",
+      "answer_type": "exact",
+      "expected_answer": "i want to speak english well",
+      "explanation": "课本 Find the rule：What’s your goal? → I want to speak English well",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-002",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-reading",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s your goal?",
+      "answer_type": "exact",
+      "expected_answer": "i want to make new friends",
+      "explanation": "课本 Find the rule：What’s your goal? → I want to make new friends",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-003",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-reading",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s your goal?",
+      "answer_type": "exact",
+      "expected_answer": "i want to study hard",
+      "explanation": "课本 Find the rule：What’s your goal? → I want to study hard",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u02-001",
+      "unit_id": "english-g3-u02",
+      "knowledge_point_id": "kp-en-g3-u02-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：You are good at running",
+      "answer_type": "exact",
+      "expected_answer": "you are good at running",
+      "explanation": "课本第 25 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u02-002",
+      "unit_id": "english-g3-u02",
+      "knowledge_point_id": "kp-en-g3-u02-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：She is good at telling stories",
+      "answer_type": "exact",
+      "expected_answer": "she is good at telling stories",
+      "explanation": "课本第 25 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u03-001",
+      "unit_id": "english-g3-u03",
+      "knowledge_point_id": "kp-en-g3-u03-reading",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s this?",
+      "answer_type": "exact",
+      "expected_answer": "it’s a carrot plant",
+      "explanation": "课本 Find the rule：What’s this? → It’s a carrot plant",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u03-002",
+      "unit_id": "english-g3-u03",
+      "knowledge_point_id": "kp-en-g3-u03-sentences",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s that?",
+      "answer_type": "exact",
+      "expected_answer": "it’s a sunflower",
+      "explanation": "课本 Find the rule：What’s that? → It’s a sunflower",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u03-003",
+      "unit_id": "english-g3-u03",
+      "knowledge_point_id": "kp-en-g3-u03-sentences",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s this?",
+      "answer_type": "exact",
+      "expected_answer": "it’s a tomato",
+      "explanation": "课本 Find the rule：What’s this? → It’s a tomato",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u03-004",
+      "unit_id": "english-g3-u03",
+      "knowledge_point_id": "kp-en-g3-u03-sentences",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s that?",
+      "answer_type": "exact",
+      "expected_answer": "it’s an orange tree",
+      "explanation": "课本 Find the rule：What’s that? → It’s an orange tree",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u04-001",
+      "unit_id": "english-g3-u04",
+      "knowledge_point_id": "kp-en-g3-u04-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：Where is ice from?",
+      "answer_type": "exact",
+      "expected_answer": "it’s from water vapour and water",
+      "explanation": "课本 Find the rule：Where is ice from? → It’s from water vapour and water",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u04-002",
+      "unit_id": "english-g3-u04",
+      "knowledge_point_id": "kp-en-g3-u04-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：Where is water vapour from?",
+      "answer_type": "exact",
+      "expected_answer": "it’s from water",
+      "explanation": "课本 Find the rule：Where is water vapour from? → It’s from water",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u04-003",
+      "unit_id": "english-g3-u04",
+      "knowledge_point_id": "kp-en-g3-u04-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：Where is rain from?",
+      "answer_type": "exact",
+      "expected_answer": "\u0007it’s from the water vapour in clouds",
+      "explanation": "课本 Find the rule：Where is rain from? → \u0007It’s from the water vapour in clouds",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u05-001",
+      "unit_id": "english-g3-u05",
+      "knowledge_point_id": "kp-en-g3-u05-reading",
+      "stem": "阅读课文判断正误（填 true 或 false，小写）。课文节选：water from the river. Oops, he falls into it.… 陈述：The ant falls into the river",
+      "answer_type": "exact",
+      "expected_answer": "true",
+      "explanation": "根据第 50 页 Story time 内容判断。",
+      "default_error_code": "EN_READING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u06-001",
+      "unit_id": "english-g3-u06",
+      "knowledge_point_id": "kp-en-g3-u06-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：How do you feel?",
+      "answer_type": "exact",
+      "expected_answer": "i’m happy",
+      "explanation": "课本 Find the rule：How do you feel? → I’m happy",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u06-002",
+      "unit_id": "english-g3-u06",
+      "knowledge_point_id": "kp-en-g3-u06-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：How do you feel?",
+      "answer_type": "exact",
+      "expected_answer": "we’re tired",
+      "explanation": "课本 Find the rule：How do you feel? → We’re tired",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u07-001",
+      "unit_id": "english-g3-u07",
+      "knowledge_point_id": "kp-en-g3-u07-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s your dream job?",
+      "answer_type": "exact",
+      "expected_answer": "my dream job is an engineer",
+      "explanation": "课本 Find the rule：What’s your dream job? → My dream job is an engineer",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u07-002",
+      "unit_id": "english-g3-u07",
+      "knowledge_point_id": "kp-en-g3-u07-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s your dream job?",
+      "answer_type": "exact",
+      "expected_answer": "my dream job is an author",
+      "explanation": "课本 Find the rule：What’s your dream job? → My dream job is an author",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u07-003",
+      "unit_id": "english-g3-u07",
+      "knowledge_point_id": "kp-en-g3-u07-grammar",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：\u0007What’s your dream job?",
+      "answer_type": "exact",
+      "expected_answer": "\u0007my dream job is a chef",
+      "explanation": "课本 Find the rule：\u0007What’s your dream job? → \u0007My dream job is a chef",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u08-001",
+      "unit_id": "english-g3-u08",
+      "knowledge_point_id": "kp-en-g3-u08-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：Walk along Sunny Road",
+      "answer_type": "exact",
+      "expected_answer": "walk along sunny road",
+      "explanation": "课本第 73 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u08-002",
+      "unit_id": "english-g3-u08",
+      "knowledge_point_id": "kp-en-g3-u08-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：Walk along the road",
+      "answer_type": "exact",
+      "expected_answer": "walk along the road",
+      "explanation": "课本第 73 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u08-003",
+      "unit_id": "english-g3-u08",
+      "knowledge_point_id": "kp-en-g3-u08-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：Turn left at Rainbow Road",
+      "answer_type": "exact",
+      "expected_answer": "turn left at rainbow road",
+      "explanation": "课本第 73 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u08-004",
+      "unit_id": "english-g3-u08",
+      "knowledge_point_id": "kp-en-g3-u08-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：Turn left at Garden Road",
+      "answer_type": "exact",
+      "expected_answer": "turn left at garden road",
+      "explanation": "课本第 73 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u10-001",
+      "unit_id": "english-g3-u10",
+      "knowledge_point_id": "kp-en-g3-u10-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：There is some beef on it",
+      "answer_type": "exact",
+      "expected_answer": "there is some beef on it",
+      "explanation": "课本第 89 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u10-002",
+      "unit_id": "english-g3-u10",
+      "knowledge_point_id": "kp-en-g3-u10-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：There is some cheese on it",
+      "answer_type": "exact",
+      "expected_answer": "there is some cheese on it",
+      "explanation": "课本第 89 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u10-003",
+      "unit_id": "english-g3-u10",
+      "knowledge_point_id": "kp-en-g3-u10-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：There is some chicken in it",
+      "answer_type": "exact",
+      "expected_answer": "there is some chicken in it",
+      "explanation": "课本第 89 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u10-004",
+      "unit_id": "english-g3-u10",
+      "knowledge_point_id": "kp-en-g3-u10-grammar",
+      "stem": "课本句型默写（小写）：请写出与课本 Find the rule 一致的句子：There is/are some ... in it too. It looks tasty",
+      "answer_type": "exact",
+      "expected_answer": "there is/are some ... in it too. it looks tasty",
+      "explanation": "课本第 89 页 Find the rule 句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    }
+  ]
+}

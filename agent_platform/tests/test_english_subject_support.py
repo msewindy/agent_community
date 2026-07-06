@@ -32,7 +32,7 @@ def test_pilot_unit_id_english() -> None:
 
 def test_english_unit_in_catalog() -> None:
     cat = KpCatalogService()
-    unit = cat.get_unit("english-g3-starter")
+    unit = cat.get_unit("english-g3-u01")
     assert unit.subject == "英语"
     assert len(unit.knowledge_points) >= 4
     assert "英语" in cat.list_subjects()
@@ -50,14 +50,14 @@ def test_onboard_english_primary_subject(tmp_path: Path) -> None:
         grade_level=3,
         primary_subject="英语",
     )
-    assert profile.active_unit_id == "english-g3-starter"
+    assert profile.active_unit_id == "english-g3-u01"
     assert profile.primary_subject == "英语"
     snap = ctx.get(sid)
     assert snap.curriculum.subject == "英语"
 
 
 def test_prompts_use_current_subject() -> None:
-    block = "## 学生学习情境\n- 学科/单元：英语 · 入门单元（english-g3-starter）"
+    block = "## 学生学习情境\n- 学科/单元：英语 · A new start（english-g3-u01）"
     sys_prompt = build_student_system_prompt("英语")
     assert "词汇" in sys_prompt or "拼写" in sys_prompt
     ctx = format_pre_llm_context(prompt_block=block, gaps=[], user_message="讲讲单词")
@@ -70,8 +70,8 @@ def test_grader_apostrophe_and_punctuation_fuzzy() -> None:
     g = Grader()
     q = Question(
         question_id="q2",
-        unit_id="english-g3-starter",
-        knowledge_point_id="kp-en-g3-grammar-basic",
+        unit_id="english-g3-u01",
+        knowledge_point_id="kp-en-g3-u01-grammar",
         stem="expand",
         answer_type=AnswerType.exact,
         expected_answer="do not",
@@ -100,8 +100,8 @@ def test_grader_exact_case_insensitive() -> None:
     g = Grader()
     q = Question(
         question_id="q1",
-        unit_id="english-g3-starter",
-        knowledge_point_id="kp-en-g3-vocab-basic",
+        unit_id="english-g3-u01",
+        knowledge_point_id="kp-en-g3-u01-vocab",
         stem="apple?",
         answer_type=AnswerType.exact,
         expected_answer="apple",

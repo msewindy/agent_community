@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from agent_platform.learning.student_identity import resolve_student_display_name
+from agent_platform.learning.student_identity import (
+    resolve_student_display_name,
+    resolve_student_friendly_name,
+    student_list_label,
+)
 from agent_platform.memory.contracts import MemoryCategory, MemoryKind, MemoryRecord, MemorySearchResult
 
 
@@ -50,3 +54,24 @@ def test_resolve_name_fallback_to_student_id() -> None:
     mem.search.return_value = MemorySearchResult(hits=[])
     name = resolve_student_display_name("unknown-id", {}, memory_svc=mem)
     assert name == "unknown-id"
+
+
+def test_resolve_friendly_name_none_when_only_id() -> None:
+    mem = MagicMock()
+    mem.list_records.return_value = []
+    mem.search.return_value = MemorySearchResult(hits=[])
+    assert resolve_student_friendly_name("unknown-stu-99", {}, memory_svc=mem) is None
+
+
+def test_student_list_label_without_nickname() -> None:
+    mem = MagicMock()
+    mem.list_records.return_value = []
+    mem.search.return_value = MemorySearchResult(hits=[])
+    label = student_list_label("unknown-stu-99", {}, grade="三年级", memory_svc=mem)
+    assert label == "未设置昵称（三年级）"
+
+
+def test_extract_name_from_wo_shi() -> None:
+    from agent_platform.learning.student_identity import _extract_name_from_text
+
+    assert _extract_name_from_text("我是小明，三年级。") == "小明"

@@ -65,6 +65,256 @@
       ]
     },
     {
+      "unit_id": "english-g3-u01",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "A new start",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u01-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u01-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u01-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u01-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u02",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Proud of you, proud of myself",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u02-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u02-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u02-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u02-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u03",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Our garden",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u03-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u03-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u03-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u03-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u04",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Water in our life",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u04-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u04-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u04-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u04-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u05",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "I can help",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u05-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u05-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u05-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u05-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u06",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "How do you feel?",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u06-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u06-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u06-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u06-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u07",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Jobs",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u07-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u07-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u07-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u07-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u08",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Finding places",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u08-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u08-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u08-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u08-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u09",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Special days",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u09-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u09-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u09-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u09-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
+      "unit_id": "english-g3-u10",
+      "grade": 3,
+      "subject": "英语",
+      "unit_title": "Foods around the world",
+      "textbook_ref": "沪教版（五·四学制）·三年级英语上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-en-g3-u10-grammar",
+          "title": "语法与表达"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u10-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u10-sentences",
+          "title": "单元核心句型"
+        },
+        {
+          "knowledge_point_id": "kp-en-g3-u10-vocab",
+          "title": "单元核心词汇"
+        }
+      ]
+    },
+    {
       "unit_id": "math-g2-add-sub-100",
       "grade": 2,
       "subject": "数学",
@@ -168,31 +418,6 @@
         {
           "knowledge_point_id": "kp-g3-mix-word-problem",
           "title": "混合运算应用题列式"
-        }
-      ]
-    },
-    {
-      "unit_id": "english-g3-starter",
-      "grade": 3,
-      "subject": "英语",
-      "unit_title": "英语入门（三年级示例单元）",
-      "textbook_ref": "外研版·三年级上册（示例）",
-      "knowledge_points": [
-        {
-          "knowledge_point_id": "kp-en-g3-vocab-basic",
-          "title": "基础词汇认读"
-        },
-        {
-          "knowledge_point_id": "kp-en-g3-spelling-basic",
-          "title": "单词拼写"
-        },
-        {
-          "knowledge_point_id": "kp-en-g3-grammar-basic",
-          "title": "基础句型语法"
-        },
-        {
-          "knowledge_point_id": "kp-en-g3-reading-basic",
-          "title": "简短阅读理解"
         }
       ]
     }

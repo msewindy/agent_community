@@ -112,7 +112,7 @@
   }
 
   async function loadJobs(selectId) {
-    const res = await fetch("/api/kp/ingest/jobs");
+    const res = await fetch("/api/kp/ingest/jobs?status=pending_review");
     if (!res.ok) { showMsg("加载失败", false); return; }
     jobs = await res.json();
     const tbody = $("jobTableBody");

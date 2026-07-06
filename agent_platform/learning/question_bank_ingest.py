@@ -103,6 +103,8 @@ def validate_draft_questions(
                 errors.append(
                     f"{q.question_id}: unknown error_code {q.default_error_code!r}"
                 )
+            if q.expected_answer.strip() in {"", "TBD", "tbd", "待补", "待人工补全"}:
+                errors.append(f"{q.question_id}: expected_answer is placeholder (TBD); fill in before import")
             if q.answer_type.value == "numeric" and q.numeric_tolerance is None:
                 warnings.append(f"{q.question_id}: numeric type without 容差")
             if q.question_id in existing_ids:

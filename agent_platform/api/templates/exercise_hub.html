@@ -7,8 +7,12 @@
 
 <div id="inboxPane">
   <div class="card">
-    <h2>尚未归类的题</h2>
-    <p class="sub">拍照后未能自动挂上知识点的题，在此挂 KP 或忽略。</p>
+    <h2>待处理习题</h2>
+    <p class="sub">含拍照后未挂上知识点的题，以及课本批量导入、需补答案后入库的题。</p>
+    <div class="toolbar" style="margin-bottom:0.75rem">
+      <button type="button" id="btnRefreshPending">刷新</button>
+      <button type="button" id="btnImportAllReady" class="secondary">导入全部已补全（课本题）</button>
+    </div>
     <div id="pendingList"><p class="hint">加载中…</p></div>
   </div>
 </div>
@@ -27,7 +31,7 @@
     <h2>上传仅练习题</h2>
     <div class="toolbar" style="margin-bottom:0">
       <input type="file" id="fileInput" accept=".md,.markdown,.kp.md" />
-      <button type="button" id="btnUpload">上传并提交审核</button>
+      <button type="button" id="btnUpload">上传并加入待归类</button>
     </div>
   </div>
 </div>
@@ -46,22 +50,30 @@
   function currentStudentId() { return studentId; }
 
   function showTab(which) {
-    const inbox = which === "inbox";
-    $("tabInbox").classList.toggle("active", inbox);
-    $("tabBank").classList.toggle("active", !inbox);
-    $("inboxPane").classList.toggle("hidden", !inbox);
-    $("bankPane").classList.toggle("hidden", inbox);
+    $("tabInbox").classList.toggle("active", which === "inbox");
+    $("tabBank").classList.toggle("active", which === "bank");
+    $("inboxPane").classList.toggle("hidden", which !== "inbox");
+    $("bankPane").classList.toggle("hidden", which !== "bank");
   }
 
-  function renderPending(items) {
-    if (!items.length) {
+  function kpOptions(selected) {
+    return kpChoices.map(k => {
+      const sel = k.kp_id === selected ? " selected" : "";
+      return `<option value="${k.kp_id}"${sel}>${k.title}（${k.subject}）</option>`;
+    }).join("");
+  }
+
+  function renderPending(photoItems, questionItems) {
+    const total = (photoItems?.length || 0) + (questionItems?.length || 0);
+    if (!total) {
       $("pendingList").innerHTML = '<p class="hint">当前没有待处理项。</p>';
       return;
     }
-    $("pendingList").innerHTML = items.map(it => {
-      const tierLabel = { inbox: "待归类", confirm: "待确认", auto: "自动" }[it.tier] || it.tier;
+    let html = "";
+    for (const it of photoItems || []) {
+      const tierLabel = { inbox: "拍照待归类", confirm: "待确认", auto: "自动" }[it.tier] || it.tier;
       const opts = kpChoices.map(k => `<option value="${k.kp_id}">${k.title}（${k.subject}）</option>`).join("");
-      return `<div class="pending-item" data-id="${it.entry_id}">
+      html += `<div class="pending-item" data-kind="photo" data-id="${it.entry_id}">
         <div><strong>${it.stem}</strong></div>
         <div class="hint" style="margin-top:0.35rem">答案：${it.student_answer || "—"} · 批改：${it.is_correct === null ? "未知" : (it.is_correct ? "对" : "错")}
           · <span class="badge pending">${tierLabel}</span></div>
@@ -73,7 +85,22 @@
           <button type="button" class="small warn btnDrop">忽略</button>
         </div>
       </div>`;
-    }).join("");
+    }
+    for (const q of questionItems || []) {
+      const need = q.needs_answer ? '<span class="badge pending">待补答案</span>' : '<span class="badge ok">可导入</span>';
+      const ans = (q.expected_answer === "TBD" ? "" : (q.expected_answer || ""));
+      html += `<div class="pending-item" data-kind="question" data-id="${q.entry_id}">
+        <div><strong>${q.stem}</strong></div>
+        <div class="hint" style="margin-top:0.35rem"><code>${q.unit_id}</code> · <span class="badge pending">课本待审</span> · ${need}</div>
+        <div class="pending-actions" style="flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem">
+          <label>知识点 <select class="kpSel">${kpOptions(q.knowledge_point_id)}</select></label>
+          <label>答案 <input class="tbAns" type="text" value="${ans.replace(/"/g, "&quot;")}" placeholder="补全标准答案" style="min-width:12rem" /></label>
+          <button type="button" class="small btnQImport">导入题库</button>
+          <button type="button" class="small warn btnQDrop">丢弃</button>
+        </div>
+      </div>`;
+    }
+    $("pendingList").innerHTML = html;
     bindPending();
   }
 
@@ -106,6 +133,34 @@
         loadPending();
       };
     });
+    document.querySelectorAll(".btnQImport").forEach(btn => {
+      btn.onclick = async () => {
+        const box = btn.closest(".pending-item");
+        const entryId = box.dataset.id;
+        const ans = box.querySelector(".tbAns").value.trim();
+        const kp = box.querySelector(".kpSel").value;
+        const res = await fetch(`/api/question-bank/inbox/${encodeURIComponent(entryId)}/import`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expected_answer: ans, knowledge_point_id: kp }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { showMsg("导入失败: " + (data.detail || res.status), false); return; }
+        showMsg("已导入题库", true);
+        loadPending();
+        loadBank();
+      };
+    });
+    document.querySelectorAll(".btnQDrop").forEach(btn => {
+      btn.onclick = async () => {
+        const box = btn.closest(".pending-item");
+        const entryId = box.dataset.id;
+        const res = await fetch(`/api/question-bank/inbox/${encodeURIComponent(entryId)}/drop`, { method: "POST" });
+        if (!res.ok) { showMsg("丢弃失败", false); return; }
+        showMsg("已丢弃", true);
+        loadPending();
+      };
+    });
   }
 
   async function loadPending() {
@@ -115,7 +170,7 @@
     if (!res.ok) return;
     const data = await res.json();
     kpChoices = data.kp_choices || [];
-    renderPending(data.pending_items || []);
+    renderPending(data.pending_items || [], data.pending_questions || []);
   }
 
   function renderOverview(data) {
@@ -147,6 +202,15 @@
   $("tabInbox").onclick = () => showTab("inbox");
   $("tabBank").onclick = () => showTab("bank");
   $("btnRefreshBank").onclick = loadBank;
+  $("btnRefreshPending").onclick = () => { loadPending(); showMsg("已刷新", true); };
+  $("btnImportAllReady").onclick = async () => {
+    const res = await fetch("/api/question-bank/inbox/import-ready", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { showMsg("导入失败", false); return; }
+    showMsg(`已导入 ${data.imported || 0} 题，剩余 ${data.remaining || 0} 题`, true);
+    loadPending();
+    loadBank();
+  };
   $("btnUpload").onclick = async () => {
     const file = $("fileInput").files[0];
     if (!file) { showMsg("请选择文件", false); return; }
@@ -154,7 +218,9 @@
     const res = await fetch("/api/question-bank/upload", { method: "POST", body: fd });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { showMsg("上传失败: " + (data.detail || res.status), false); return; }
-    location.href = data.redirect_review || "/kp-review";
+    showTab("inbox");
+    await loadPending();
+    showMsg(data.hint || "已加入待归类", true);
   };
   initPage();
 </script>

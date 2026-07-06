@@ -220,7 +220,7 @@
     if (!res.ok) return;
     const students = await res.json();
     const sel = $("studentSelect");
-    sel.innerHTML = students.map(s => `<option value="${s.student_id}">${s.display_name}（${s.grade}）</option>`).join("");
+    sel.innerHTML = students.map(s => `<option value="${s.student_id}" title="${s.student_id}">${s.display_label || s.display_name}</option>`).join("");
     const q = urlPrefs.get("student");
     if (q && students.some(s => s.student_id === q)) sel.value = q;
     sel.onchange = async () => {

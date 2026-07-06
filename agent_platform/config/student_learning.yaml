@@ -15,14 +15,14 @@ default_curriculum:
   textbook_ref: "北师大版·三年级上册"
 
 defaults:
-  pipeline_stage: learning
+  pipeline_stage: onboarding   # 画像预热完成后自动切 learning
 
 pilot:
   grade_level: 3
   units:
     math: math-g3-mixed-ops
     chinese: chinese-g2-sentence-basic
-    english: english-g3-starter
+    english: english-g3-u01
 
 kp_catalog:
   path: agent_platform/learning/catalog/kp_catalog.json
@@ -38,7 +38,7 @@ question_bank:
     - agent_platform/learning/question_bank/seed_questions_g2_math.json
     - agent_platform/learning/question_bank/seed_questions_g2_chinese.json
     - agent_platform/learning/question_bank/seed_questions_g3_math_mixed_ops.json
-    - agent_platform/learning/question_bank/seed_questions_g3_english_starter.json
+    - agent_platform/learning/question_bank/seed_questions_g3_english_hujiao.json
   sqlite_path: agent_platform/learning/question_bank/questions.db
 
 grader:
@@ -61,6 +61,7 @@ photo_triage:
 
 hermes:
   default_student_id: g2-stu-01   # 家庭 Alpha：升三年级后沿用原 id
+  default_assistant_name: 贾维斯   # 用户未起别名时的助手自称
   inject_system_rules: true
 
 students:
@@ -105,20 +106,20 @@ error_taxonomy:
       subject: 语文
     SPELLING_ERROR:
       title: 单词拼写错误
-      knowledge_point_id: kp-en-g3-spelling-basic
+      knowledge_point_id: kp-en-g3-u01-vocab
       subject: 英语
       behavior_tags: [粗心]
     GRAMMAR_ERROR:
       title: 句型语法错误
-      knowledge_point_id: kp-en-g3-grammar-basic
+      knowledge_point_id: kp-en-g3-u01-grammar
       subject: 英语
     VOCAB_GAP:
       title: 词汇量不足
-      knowledge_point_id: kp-en-g3-vocab-basic
+      knowledge_point_id: kp-en-g3-u01-vocab
       subject: 英语
     EN_READING_ERROR:
       title: 英语阅读理解错误
-      knowledge_point_id: kp-en-g3-reading-basic
+      knowledge_point_id: kp-en-g3-u01-reading
       subject: 英语
       behavior_tags: [审题]
 
@@ -180,7 +181,7 @@ seed:
     - math-g3-mixed-ops
     - math-g2-add-sub-100
     - chinese-g2-sentence-basic
-    - english-g3-starter
+    - english-g3-u01
 
 web_panel:
   host: "127.0.0.1"

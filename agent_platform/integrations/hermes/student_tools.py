@@ -467,10 +467,26 @@ def pre_llm_student_context_hook(**kwargs: Any) -> dict[str, str] | None:
             }
         ctx = ctx_svc.get(sid)
         gaps = _get_gap_svc().query(sid, limit=3)
+        from agent_platform.learning.profile_onboarding import (
+            build_onboarding_guidance,
+            ensure_onboarding_stage_if_needed,
+            snapshot_for_student,
+        )
+
+        snap = snapshot_for_student(sid, cfg=cfg)
+        assistant = assistant_name_for_student(sid, cfg=cfg)
+        ensure_onboarding_stage_if_needed(sid, snap, cfg=cfg)
+        onboarding_block = build_onboarding_guidance(
+            snap,
+            grade_label=ctx.curriculum.grade,
+            assistant_name=assistant,
+        )
         block = format_pre_llm_context(
             prompt_block=ctx_svc.to_prompt_block(ctx),
             gaps=gaps,
             user_message=user_msg,
+            onboarding_guidance=onboarding_block,
+            assistant_name=assistant,
         )
         try:
             from agent_platform.perception.vision_session import VisionSessionStore
@@ -485,6 +501,31 @@ def pre_llm_student_context_hook(**kwargs: Any) -> dict[str, str] | None:
     except Exception as e:
         logger.warning("pre_llm_student_context failed: %s", e)
         return {"context": ANSWER_GATE_RULES}
+
+
+def post_llm_student_context_hook(**kwargs: Any) -> None:
+    """After each turn: sync display name and advance onboarding → learning when ready."""
+    bootstrap_agent_platform()
+    from agent_platform.learning._config import load_student_learning_config, resolve_student_id
+    from agent_platform.learning.profile_onboarding import (
+        maybe_advance_from_onboarding,
+        refresh_student_display_name,
+    )
+
+    cfg = load_student_learning_config()
+    sid = resolve_student_id(kwargs=kwargs)
+    if not sid:
+        return
+    user_msg = (kwargs.get("user_message") or kwargs.get("message") or "").strip()
+    try:
+        from agent_platform.learning.profile_onboarding import ingest_profile_clues_from_message
+
+        if user_msg:
+            ingest_profile_clues_from_message(sid, user_msg, cfg=cfg)
+        refresh_student_display_name(sid, cfg=cfg)
+        maybe_advance_from_onboarding(sid, cfg=cfg)
+    except Exception as e:
+        logger.debug("post_llm profile onboarding skipped: %s", e)
 
 
 def classify_photo(args: dict, **kwargs) -> str:
@@ -793,6 +834,7 @@ STUDY_PLAN_GENERATE_SCHEMA = {
 def register_student_hermes_tools(ctx) -> None:
     bootstrap_agent_platform()
     ctx.register_hook("pre_llm_call", pre_llm_student_context_hook)
+    ctx.register_hook("post_llm_call", post_llm_student_context_hook)
     ctx.register_tool(
         name="student_context_get",
         toolset="agent_student",

@@ -12,11 +12,19 @@ from agent_platform.learning._config import load_student_learning_config
 from agent_platform.learning.contracts import GapMap, GapStatus
 from agent_platform.learning.dimension_model import DimensionModelService
 from agent_platform.learning.gap_map import GapMapService
-from agent_platform.learning.kp_catalog import KpCatalogService, UnitCatalogEntry
+from agent_platform.learning.kp_catalog import (
+    KpCatalogService,
+    UnitCatalogEntry,
+    get_kp_catalog_service,
+)
 from agent_platform.learning.onboarding import OnboardingService
 from agent_platform.learning.store import layout_for, list_attempt_paths, load_attempt
 from agent_platform.learning.student_context import StudentContextService
-from agent_platform.learning.student_identity import resolve_student_display_name
+from agent_platform.learning.profile_onboarding import refresh_student_display_name
+from agent_platform.learning.student_identity import (
+    resolve_student_friendly_name,
+    student_list_label,
+)
 
 
 class UnitProgressOut(BaseModel):
@@ -60,6 +68,8 @@ class SubjectCardOut(BaseModel):
 class LearningDashboardOut(BaseModel):
     student_id: str
     display_name: str
+    display_label: str
+    has_nickname: bool = False
     grade: str
     grade_level: int
     subjects: list[SubjectCardOut] = Field(default_factory=list)
@@ -88,6 +98,11 @@ class LearningDashboardService:
         )
         self._memory = memory_svc
         self._data_root = data_root
+        self._kp_units = self._catalog.kp_index()
+
+    def _sync_catalog(self) -> None:
+        """Pick up kp_catalog.json changes without restarting the panel."""
+        self._catalog = get_kp_catalog_service(config=self._cfg)
         self._kp_units = self._catalog.kp_index()
 
     def _grade_level(self, student_id: str) -> int:
@@ -355,11 +370,28 @@ class LearningDashboardService:
         if not self._ctx.exists(student_id):
             raise FileNotFoundError(f"student context not found: {student_id}")
 
+        self._sync_catalog()
         ctx = self._ctx.get(student_id)
         grade_level = self._grade_level(student_id)
-        display_name = resolve_student_display_name(
+        refresh_student_display_name(
+            student_id,
+            cfg=self._cfg,
+            data_root=self._data_root,
+            memory_svc=self._memory,
+            onboarding_svc=self._onboarding,
+        )
+        friendly = resolve_student_friendly_name(
             student_id,
             self._cfg,
+            ctx=ctx,
+            memory_svc=self._memory,
+            data_root=self._data_root,
+        )
+        display_name = friendly or "未设置昵称"
+        display_label = student_list_label(
+            student_id,
+            self._cfg,
+            grade=ctx.curriculum.grade or "",
             ctx=ctx,
             memory_svc=self._memory,
             data_root=self._data_root,
@@ -454,6 +486,8 @@ class LearningDashboardService:
         return LearningDashboardOut(
             student_id=student_id,
             display_name=display_name,
+            display_label=display_label,
+            has_nickname=bool(friendly),
             grade=ctx.curriculum.grade,
             grade_level=grade_level,
             subjects=subject_cards,

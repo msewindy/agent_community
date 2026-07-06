@@ -12,9 +12,14 @@ from pydantic import BaseModel, Field
 from urllib.parse import quote
 
 from agent_platform.learning._config import load_student_learning_config, repo_root
-from agent_platform.learning.student_identity import resolve_student_display_name
+from agent_platform.learning.profile_onboarding import refresh_student_display_name
+from agent_platform.learning.student_identity import resolve_student_friendly_name, student_list_label
 from agent_platform.learning.bootstrap_family_alpha import ensure_family_alpha_content
-from agent_platform.learning.kp_catalog import KpCatalogService, get_kp_catalog_service
+from agent_platform.learning.kp_catalog import (
+    KpCatalogService,
+    get_kp_catalog_service,
+    invalidate_kp_catalog_cache,
+)
 from agent_platform.learning.kp_catalog_diff import CatalogTree, ConflictKind
 from agent_platform.learning.kp_ingest_review import (
     KpIngestReviewService,
@@ -38,6 +43,8 @@ from agent_platform.learning.kp_template import (
 )
 from agent_platform.learning.parent_report import ParentReportService
 from agent_platform.learning.question_bank_ingest import question_bank_overview
+from agent_platform.learning.question_inbox import QuestionInboxService
+from agent_platform.learning.question_pending_review import is_question_bank_queue
 from agent_platform.learning.student_context import StudentContextService
 from agent_platform.learning.textbook_ingest import IngestJobStatus, TextbookIngestService
 from agent_platform.learning.unit_switch import UnitSwitchService
@@ -97,10 +104,17 @@ def _attachment_disposition(filename: str) -> str:
     return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
 
 
+def _live_catalog() -> KpCatalogService:
+    """Always read catalog from disk (mtime-based singleton reload)."""
+    return get_kp_catalog_service()
+
+
 class StudentSummaryOut(BaseModel):
     student_id: str
     display_name: str
+    display_label: str
     grade: str = ""
+    has_nickname: bool = False
 
 
 class CatalogInfoOut(BaseModel):
@@ -174,6 +188,16 @@ class TriageResolveIn(BaseModel):
 
 class TriageDropIn(BaseModel):
     note: Optional[str] = None
+
+
+class PendingQuestionPatchIn(BaseModel):
+    expected_answer: Optional[str] = None
+    knowledge_point_id: Optional[str] = None
+    explanation: Optional[str] = None
+
+
+class PendingQuestionImportIn(BaseModel):
+    question_ids: Optional[list[str]] = None
 
 
 class LearningUnitSwitchIn(BaseModel):
@@ -267,7 +291,12 @@ def create_app(
     catalog = catalog_svc or get_kp_catalog_service()
     ingest = ingest_svc or TextbookIngestService(data_root=data_root)
     review = review_svc or KpIngestReviewService(ingest_svc=ingest, catalog_svc=catalog)
-    profile_svc = LearningProfileService(data_root=data_root, catalog=catalog)
+    question_inbox_svc = QuestionInboxService(data_root=data_root)
+    profile_svc = LearningProfileService(
+        data_root=data_root,
+        catalog=catalog,
+        question_inbox_svc=question_inbox_svc,
+    )
     triage_svc = PhotoTriageService(data_root=data_root, catalog=catalog)
     unit_switch_svc = UnitSwitchService(data_root=data_root, catalog_svc=catalog)
     dashboard_svc = LearningDashboardService(
@@ -338,13 +367,9 @@ def create_app(
             },
         )
 
-    @app.get("/api/question-bank/format-guide", response_class=PlainTextResponse)
-    def question_bank_format_guide() -> str:
-        return QUESTIONS_FORMAT_GUIDE_BRIEF
-
     @app.post("/api/question-bank/upload")
     async def question_bank_upload(file: UploadFile = File(...)) -> JSONResponse:
-        """Upload questions-only `.kp.md` → same ingest job pipeline."""
+        """Upload questions-only `.kp.md` → 习题处理待归类队列。"""
         if not file.filename:
             raise HTTPException(status_code=400, detail="missing filename")
         content = await file.read()
@@ -367,30 +392,67 @@ def create_app(
                 detail="此入口仅接受「仅练习题」文档；含知识点请用「知识点入库」",
             )
 
-        upload_dir = data_root / "_kp_uploads"
-        upload_dir.mkdir(parents=True, exist_ok=True)
-        from agent_platform.learning.contracts import utc_now
-
-        stamp = utc_now().strftime("%Y%m%d-%H%M%S")
-        safe_name = re.sub(r"[^\w.\-一-龥]", "_", file.filename)
-        dest = upload_dir / f"{stamp}-{safe_name}"
-        dest.write_text(text, encoding="utf-8")
-
-        try:
-            job = ingest.submit_kp_document(dest)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e)) from e
-        job.client_filename = file.filename
-        job.client_source_path = file.filename
-        ingest._save(job)  # noqa: SLF001
-        snapshot = review.build_snapshot(job)
+        added = question_inbox_svc.upsert_from_draft(draft, source_ref=file.filename)
         return JSONResponse(
             {
-                "job": _job_summary(job).model_dump(mode="json"),
-                "blocking_unresolved": snapshot.blocking_unresolved,
-                "redirect_review": f"/kp-review?job={job.job_id}",
+                "success": True,
+                "added": len(added),
+                "redirect_review": "/exercises",
+                "hint": f"已加入待归类 {len(added)} 道题，请补全答案后导入题库",
             }
         )
+
+    @app.get("/api/question-bank/format-guide", response_class=PlainTextResponse)
+    def question_bank_format_guide() -> str:
+        return QUESTIONS_FORMAT_GUIDE_BRIEF
+
+    @app.get("/api/question-bank/inbox")
+    def list_question_inbox() -> JSONResponse:
+        items = question_inbox_svc.list_pending()
+        return JSONResponse(
+            {"count": len(items), "items": [e.model_dump(mode="json") for e in items]}
+        )
+
+    @app.patch("/api/question-bank/inbox/{entry_id}")
+    def patch_question_inbox(entry_id: str, body: PendingQuestionPatchIn) -> JSONResponse:
+        try:
+            entry = question_inbox_svc.update_entry(
+                entry_id,
+                expected_answer=body.expected_answer,
+                knowledge_point_id=body.knowledge_point_id,
+                explanation=body.explanation,
+            )
+        except KeyError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        return JSONResponse(entry.model_dump(mode="json"))
+
+    @app.post("/api/question-bank/inbox/{entry_id}/import")
+    def import_question_inbox(entry_id: str, body: PendingQuestionPatchIn) -> JSONResponse:
+        try:
+            result = question_inbox_svc.import_entry(
+                entry_id,
+                expected_answer=body.expected_answer,
+                knowledge_point_id=body.knowledge_point_id,
+            )
+        except KeyError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        return JSONResponse(result)
+
+    @app.post("/api/question-bank/inbox/import-ready")
+    def import_all_question_inbox() -> JSONResponse:
+        return JSONResponse(question_inbox_svc.import_all_ready())
+
+    @app.post("/api/question-bank/inbox/{entry_id}/drop")
+    def drop_question_inbox(entry_id: str) -> JSONResponse:
+        try:
+            entry = question_inbox_svc.drop_entry(entry_id)
+        except KeyError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+        return JSONResponse(entry.model_dump(mode="json"))
 
     @app.get("/api/kp/format-template")
     def kp_format_template() -> Response:
@@ -410,26 +472,28 @@ def create_app(
     @app.post("/api/kp/catalog/reload")
     def catalog_reload() -> JSONResponse:
         """Reload kp_catalog.json from disk into this panel process."""
-        catalog.reload()
-        cat = catalog.catalog
+        invalidate_kp_catalog_cache()
+        svc = _live_catalog()
+        cat = svc.catalog
         kp_count = sum(len(u.knowledge_points) for u in cat.units)
         return JSONResponse(
             {
                 "success": True,
                 "unit_count": len(cat.units),
                 "knowledge_point_count": kp_count,
-                "hint": "孩子端 8771 会在下次提问时自动加载新 catalog，一般无需重启。",
+                "hint": "家长端浏览知识库已刷新；孩子端 8771 会在下次提问时自动加载新 catalog。",
             }
         )
 
     @app.get("/api/kp/catalog/info", response_model=CatalogInfoOut)
     def catalog_info() -> CatalogInfoOut:
-        cat = catalog.catalog
+        svc = _live_catalog()
+        cat = svc.catalog
         kp_count = sum(len(u.knowledge_points) for u in cat.units)
         try:
-            rel_path = str(catalog._path.relative_to(repo_root())).replace("\\", "/")  # noqa: SLF001
+            rel_path = str(svc._path.relative_to(repo_root())).replace("\\", "/")  # noqa: SLF001
         except ValueError:
-            rel_path = str(catalog._path)
+            rel_path = str(svc._path)
         subjects = sorted({u.subject for u in cat.units})
         return CatalogInfoOut(
             catalog_path=rel_path,
@@ -482,13 +546,20 @@ def create_app(
             sid = p.name
             try:
                 ctx = ctx_svc.get(sid)
+                refresh_student_display_name(sid, cfg=cfg, data_root=data_root)
+                friendly = resolve_student_friendly_name(
+                    sid, cfg, ctx=ctx, data_root=data_root
+                )
+                grade = ctx.curriculum.grade or ""
                 out.append(
                     StudentSummaryOut(
                         student_id=sid,
-                        display_name=resolve_student_display_name(
-                            sid, cfg, ctx=ctx, data_root=data_root
+                        display_name=friendly or "未设置昵称",
+                        display_label=student_list_label(
+                            sid, cfg, grade=grade, ctx=ctx, data_root=data_root
                         ),
-                        grade=ctx.curriculum.grade or "",
+                        grade=grade,
+                        has_nickname=bool(friendly),
                     )
                 )
             except FileNotFoundError:
@@ -531,7 +602,7 @@ def create_app(
         subject: Optional[str] = None,
         grade: Optional[int] = Query(None, ge=1, le=6),
     ) -> CatalogTree:
-        tree = catalog.list_tree()
+        tree = _live_catalog().list_tree()
         if subject is None and grade is None:
             return tree
         subjects = []
@@ -549,9 +620,20 @@ def create_app(
 
     @app.get("/api/kp/ingest/jobs", response_model=list[IngestJobSummary])
     def list_ingest_jobs(
-        status: Optional[IngestJobStatus] = Query(None),
+        status: Optional[IngestJobStatus] = Query(IngestJobStatus.pending_review),
+        include_questions: bool = Query(
+            False,
+            description="为 true 时包含「仅练习题」待审批次（应在习题处理待归类）",
+        ),
+        include_rejected: bool = Query(False, description="为 true 时包含已拒绝记录"),
     ) -> list[IngestJobSummary]:
-        jobs = ingest.list_jobs(status=status)
+        if include_rejected and status == IngestJobStatus.pending_review:
+            jobs = ingest.list_jobs(status=None)
+            jobs = [j for j in jobs if j.status in (IngestJobStatus.pending_review, IngestJobStatus.rejected)]
+        else:
+            jobs = ingest.list_jobs(status=status)
+        if not include_questions:
+            jobs = [j for j in jobs if not is_question_bank_queue(j)]
         return [_job_summary(job) for job in jobs]
 
     @app.get("/api/kp/ingest/samples")

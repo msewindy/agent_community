@@ -46,7 +46,8 @@
       return;
     }
     $("gradeHint").textContent =
-      `${data.display_name} · ${data.grade}（${data.grade_level} 年级）学情总览 — 本页展示当前年级全部单元的累计学习情况`;
+      `${data.display_label || data.display_name} · ${data.grade}（${data.grade_level} 年级）学情总览 — 本页展示当前年级全部单元的累计学习情况` +
+      (data.has_nickname ? "" : ` · 账号 ${data.student_id}`);
 
     $("subjectGrid").innerHTML = subjects.map(s => {
       const hist = s.historical_weak_count > 0 && !(s.attention_items || []).some(i => i.is_historical)
@@ -104,7 +105,7 @@
     const sel = $("studentSelect");
     if (!students.length) { sel.innerHTML = '<option value="">暂无学生</option>'; return; }
     sel.innerHTML = students.map(s =>
-      `<option value="${s.student_id}">${s.display_name}（${s.grade || "—"}）</option>`
+      `<option value="${s.student_id}" title="${s.student_id}">${s.display_label || s.display_name}</option>`
     ).join("");
     const q = new URLSearchParams(location.search).get("student");
     if (q && students.some(s => s.student_id === q)) sel.value = q;

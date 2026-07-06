@@ -38,6 +38,14 @@ from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from agent_platform.learning.bootstrap_family_alpha import ensure_family_alpha_content
+from agent_platform.learning.profile_onboarding import (
+    assistant_name_for_student,
+    build_welcome_message,
+    ensure_onboarding_stage_if_needed,
+    maybe_advance_from_onboarding,
+    snapshot_for_student,
+)
+from agent_platform.memory.assistant_identity import DEFAULT_ASSISTANT_NAME
 
 from agent_platform.perception.vision_session import VisionSessionStore
 from agent_platform.perception.vision_understand import understand_image
@@ -162,6 +170,37 @@ def create_app(
     def chat_page() -> str:
         return _CHAT_HTML
 
+    def _default_student_id() -> str:
+        from agent_platform.learning._config import load_student_learning_config
+
+        cfg = load_student_learning_config()
+        return str((cfg.get("hermes") or {}).get("default_student_id") or "g2-stu-01")
+
+    @app.get("/api/chat/welcome")
+    def chat_welcome(student_id: Optional[str] = None) -> dict:
+        sid = (student_id or _default_student_id()).strip()
+        snap = snapshot_for_student(sid)
+        assistant = assistant_name_for_student(sid)
+        ensure_onboarding_stage_if_needed(sid, snap)
+        from agent_platform.learning.student_context import StudentContextService
+
+        stage = "unknown"
+        try:
+            ctx = StudentContextService().get(sid)
+            stage = ctx.pipeline_stage.value
+        except FileNotFoundError:
+            pass
+        return {
+            "student_id": sid,
+            "message": build_welcome_message(snap, assistant_name=assistant),
+            "assistant_name": assistant,
+            "assistant_default": DEFAULT_ASSISTANT_NAME,
+            "profile_complete": snap.is_complete,
+            "missing": snap.missing,
+            "display_name": snap.display_name,
+            "pipeline_stage": stage,
+        }
+
     @app.post("/api/chat", response_model=ChatOut)
     def chat(body: ChatIn) -> ChatOut:
         env_extra: dict[str, str] = {}
@@ -182,6 +221,10 @@ def create_app(
             raise HTTPException(status_code=502, detail=str(e)) from e
         except Exception as e:
             raise HTTPException(status_code=504, detail=f"agent error: {e}") from e
+        try:
+            maybe_advance_from_onboarding(_default_student_id())
+        except Exception:
+            pass
         return ChatOut(
             reply=reply.text,
             session_id=reply.session_id,

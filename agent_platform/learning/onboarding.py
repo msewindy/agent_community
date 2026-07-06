@@ -120,3 +120,28 @@ class OnboardingService:
             profile.primary_subject = subject
         lay = layout_for(student_id, self._data_root)
         self._save_profile(lay.profile_path, profile)
+
+    def set_preferred_name(self, student_id: str, preferred_name: str) -> StudentOnboardingProfile:
+        """Persist nickname on L1 onboarding profile (create minimal profile if missing)."""
+        name = (preferred_name or "").strip()
+        if not name:
+            raise ValueError("preferred_name must not be empty")
+        lay = layout_for(student_id, self._data_root)
+        try:
+            profile = self.load_profile(student_id)
+        except FileNotFoundError:
+            ctx = self._ctx.get(student_id)
+            profile = StudentOnboardingProfile(
+                student_id=student_id,
+                updated_at=utc_now(),
+                grade=ctx.curriculum.grade,
+                grade_level=int(ctx.curriculum.grade_level or 3),
+                primary_subject=ctx.curriculum.subject,
+                active_unit_id=ctx.curriculum.unit_id,
+                preferred_name=name,
+            )
+        else:
+            profile.preferred_name = name
+            profile.updated_at = utc_now()
+        self._save_profile(lay.profile_path, profile)
+        return profile

@@ -100,7 +100,7 @@
     const res = await fetch("/api/students");
     if (!res.ok) return;
     const students = await res.json();
-    $("studentSelect").innerHTML = students.map(s => `<option value="${s.student_id}">${s.display_name}（${s.grade}）</option>`).join("");
+    $("studentSelect").innerHTML = students.map(s => `<option value="${s.student_id}" title="${s.student_id}">${s.display_label || s.display_name}</option>`).join("");
     await loadReport(false);
   }
 

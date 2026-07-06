@@ -53,7 +53,7 @@ def test_question_bank_upload_questions_only(tmp_path: Path) -> None:
         files={"file": ("only-q.kp.md", tpl.encode("utf-8"), "text/markdown")},
     )
     assert res.status_code == 200, res.text
-    job_id = res.json()["job"]["job_id"]
-    review = client.get(f"/api/kp/ingest/jobs/{job_id}/review")
-    assert review.status_code == 200
-    assert review.json()["question_count"] >= 2
+    body = res.json()
+    assert body["success"] is True
+    assert body["added"] >= 1
+    assert client.get("/api/kp/ingest/jobs").json() == []
