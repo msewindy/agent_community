@@ -49,20 +49,20 @@ def test_get_snapshot_lists_grade_lte_units(unit_env) -> None:
     snap = svc.get_snapshot(sid)
     assert snap.student_grade_level == 3
     assert snap.current.unit_id == "math-g2-add-sub-100"
-    assert any(c.unit_id == "math-g3-mixed-ops" for c in snap.choices)
+    assert any(c.unit_id == "math-g3-u01" for c in snap.choices)
     assert all(c.grade <= 3 for c in snap.choices)
 
 
 def test_switch_unit_updates_context_and_stage(unit_env) -> None:
     svc, ctx, sid, _ = unit_env
-    result = svc.switch_active_unit(sid, "math-g3-mixed-ops")
+    result = svc.switch_active_unit(sid, "math-g3-u01")
     assert result.success is True
     assert result.previous_unit_id == "math-g2-add-sub-100"
-    assert result.new_unit_id == "math-g3-mixed-ops"
+    assert result.new_unit_id == "math-g3-u01"
     assert result.push_queue_size >= 0
 
     updated = ctx.get(sid)
-    assert updated.curriculum.unit_id == "math-g3-mixed-ops"
+    assert updated.curriculum.unit_id == "math-g3-u01"
     assert updated.pipeline_stage == PipelineStage.learning
 
 
@@ -83,4 +83,4 @@ def test_grade_boundary_blocks(unit_env) -> None:
         ),
     )
     with pytest.raises(GradeBoundaryError):
-        svc.switch_active_unit(sid, "math-g3-mixed-ops")
+        svc.switch_active_unit(sid, "math-g3-u01")

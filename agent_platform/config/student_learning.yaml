@@ -5,14 +5,14 @@ enabled: true
 data:
   root: student_data
 
-# 默认：三年级 · 数学第一单元（混合运算）
+# 默认：三年级 · 数学第一单元（两步四则运算）
 default_curriculum:
   grade: "三年级"
   grade_level: 3
   subject: 数学
-  unit_id: math-g3-mixed-ops
-  unit_title: 混合运算（第一单元）
-  textbook_ref: "北师大版·三年级上册"
+  unit_id: math-g3-u01
+  unit_title: 两步四则运算与应用题
+  textbook_ref: "沪教版（五·四学制）·三年级数学上册"
 
 defaults:
   pipeline_stage: onboarding   # 画像预热完成后自动切 learning
@@ -20,8 +20,8 @@ defaults:
 pilot:
   grade_level: 3
   units:
-    math: math-g3-mixed-ops
-    chinese: chinese-g2-sentence-basic
+    math: math-g3-u01
+    chinese: chinese-g3-u01
     english: english-g3-u01
 
 kp_catalog:
@@ -37,7 +37,8 @@ question_bank:
   seed_paths:
     - agent_platform/learning/question_bank/seed_questions_g2_math.json
     - agent_platform/learning/question_bank/seed_questions_g2_chinese.json
-    - agent_platform/learning/question_bank/seed_questions_g3_math_mixed_ops.json
+    - agent_platform/learning/question_bank/seed_questions_g3_math_hujiao.json
+    - agent_platform/learning/question_bank/seed_questions_g3_chinese_pep.json
     - agent_platform/learning/question_bank/seed_questions_g3_english_hujiao.json
   sqlite_path: agent_platform/learning/question_bank/questions.db
 
@@ -178,8 +179,9 @@ seed:
   min_taxonomy_codes: 5
   min_remediation_skills: 4
   pilot_units:
-    - math-g3-mixed-ops
+    - math-g3-u01
     - math-g2-add-sub-100
+    - chinese-g3-u01
     - chinese-g2-sentence-basic
     - english-g3-u01
 

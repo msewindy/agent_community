@@ -153,6 +153,11 @@ def student_context_get(args: dict, **kwargs) -> str:
                 "student_id": sid,
                 "context": ctx.model_dump(mode="json"),
                 "prompt_block": block,
+                "updated_by": ctx.curriculum.updated_by,
+                "hint": (
+                    "换学科/单元时用 learning_catalog_lookup 确认 unit_id，"
+                    "再 learning_focus_set；讲新课务必 explain_kp。"
+                ),
             }
         )
     except FileNotFoundError:
@@ -168,8 +173,28 @@ def gap_map_query(args: dict, **kwargs) -> str:
         return _tool_error("Missing student_id")
     try:
         limit = int(args.get("limit", 5))
+        subject = (args.get("subject") or "").strip() or None
+        unit_id = (args.get("unit_id") or "").strip() or None
         svc = _get_gap_svc()
-        gaps = svc.query(sid, limit=limit)
+        fetch_limit = limit * 5 if (subject or unit_id) else limit
+        gaps = svc.query(sid, limit=fetch_limit)
+        if unit_id:
+            from agent_platform.learning.kp_catalog import get_kp_catalog_service
+
+            unit = get_kp_catalog_service().get_unit(unit_id)
+            kp_ids = {kp.knowledge_point_id for kp in unit.knowledge_points}
+            gaps = [g for g in gaps if g.knowledge_point_id in kp_ids]
+        elif subject:
+            from agent_platform.learning.kp_catalog import get_kp_catalog_service
+
+            index = get_kp_catalog_service().kp_index()
+            gaps = [
+                g
+                for g in gaps
+                if index.get(g.knowledge_point_id) is not None
+                and index[g.knowledge_point_id].subject == subject
+            ]
+        gaps = gaps[:limit]
         return _tool_result(
             {
                 "success": True,
@@ -180,6 +205,65 @@ def gap_map_query(args: dict, **kwargs) -> str:
         )
     except Exception as e:
         logger.exception("gap_map_query failed")
+        return _tool_error(str(e))
+
+
+def learning_catalog_lookup(args: dict, **kwargs) -> str:
+    sid = _require_student_id(args, kwargs)
+    if not sid:
+        return _tool_error("Missing student_id")
+    try:
+        from agent_platform.learning.kp_catalog import get_kp_catalog_service
+        from agent_platform.learning.learning_catalog_lookup import lookup_units
+
+        ctx = _get_ctx_svc().get(sid)
+        grade_level = ctx.curriculum.grade_level
+        if grade_level is None:
+            grade_level = get_kp_catalog_service().resolve_grade_level(ctx.curriculum.grade)
+        result = lookup_units(
+            grade_level=int(grade_level),
+            subject=args.get("subject"),
+            unit_num=args.get("unit_num"),
+            unit_id=args.get("unit_id"),
+            title_contains=args.get("title_contains"),
+        )
+        payload = result.to_dict()
+        payload["success"] = result.success
+        if not result.success:
+            return _tool_error(result.error or "catalog lookup failed")
+        return _tool_result(payload)
+    except FileNotFoundError as e:
+        return _tool_error(str(e))
+    except Exception as e:
+        logger.exception("learning_catalog_lookup failed")
+        return _tool_error(str(e))
+
+
+def learning_focus_set(args: dict, **kwargs) -> str:
+    sid = _require_student_id(args, kwargs)
+    if not sid:
+        return _tool_error("Missing student_id")
+    unit_id = (args.get("unit_id") or "").strip()
+    if not unit_id:
+        return _tool_error("Missing unit_id")
+    try:
+        from agent_platform.learning.learning_focus import set_learning_focus
+
+        result = set_learning_focus(
+            sid,
+            unit_id,
+            reason=str(args.get("reason") or ""),
+            data_root=_student_data_root(),
+        )
+        return _tool_result(result.to_dict())
+    except FileNotFoundError as e:
+        return _tool_error(str(e))
+    except KeyError as e:
+        return _tool_error(str(e))
+    except ValueError as e:
+        return _tool_error(str(e))
+    except Exception as e:
+        logger.exception("learning_focus_set failed")
         return _tool_error(str(e))
 
 
@@ -468,6 +552,7 @@ def pre_llm_student_context_hook(**kwargs: Any) -> dict[str, str] | None:
         ctx = ctx_svc.get(sid)
         gaps = _get_gap_svc().query(sid, limit=3)
         from agent_platform.learning.profile_onboarding import (
+            assistant_name_for_student,
             build_onboarding_guidance,
             ensure_onboarding_stage_if_needed,
             snapshot_for_student,
@@ -633,12 +718,14 @@ STUDENT_CONTEXT_GET_SCHEMA = {
 
 GAP_MAP_QUERY_SCHEMA = {
     "name": "gap_map_query",
-    "description": "Query top learning gaps (wrong_7d, status, evidence). Required before claiming weaknesses.",
+    "description": "Query top learning gaps (wrong_7d, status, evidence). Optional subject/unit_id filter.",
     "parameters": {
         "type": "object",
         "properties": {
             "student_id": {"type": "string"},
             "limit": {"type": "integer", "default": 5},
+            "subject": {"type": "string", "description": "Optional: 数学 / 语文 / 英语"},
+            "unit_id": {"type": "string", "description": "Optional: filter gaps to this unit's KPs"},
         },
         "required": [],
     },
@@ -745,7 +832,7 @@ QUESTIONS_SUGGEST_SCHEMA = {
     "name": "questions_suggest",
     "description": (
         "Suggest practice questions in real time from the question bank. "
-        "Use when the student wants to practice (not when explaining new topics). "
+        "If the student switched subject/unit in conversation, call learning_focus_set first. "
         "Default focus=current_unit uses StudentContext unit; focus=remediation needs knowledge_point_id."
     ),
     "parameters": {
@@ -783,9 +870,10 @@ QUESTION_GET_SCHEMA = {
 EXPLAIN_KP_SCHEMA = {
     "name": "explain_kp",
     "description": (
-        "Get teaching context for a knowledge point from catalog + Wiki. "
-        "Call when explaining/teaching a specific KP ('讲讲', '什么是'). "
-        "If has_wiki=false, teach from title/unit context without pretending textbook authority."
+        "Get teaching context for a knowledge point (catalog + Wiki raw). "
+        "REQUIRED before teaching/explaining a unit or KP. "
+        "Use description_text in the response; do NOT invent vocabulary or sentences. "
+        "knowledge_point_id must come from catalog_lookup or learning_focus_set result."
     ),
     "parameters": {
         "type": "object",
@@ -812,6 +900,43 @@ STUDENT_ANSWER_GATE_SCHEMA = {
             "student_id": {"type": "string"},
         },
         "required": ["text"],
+    },
+}
+
+
+LEARNING_CATALOG_LOOKUP_SCHEMA = {
+    "name": "learning_catalog_lookup",
+    "description": (
+        "Resolve unit_id from the CLOSED kp catalog. "
+        "Use when the student names a subject/unit before learning_focus_set."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "student_id": {"type": "string"},
+            "subject": {"type": "string", "description": "数学 / 语文 / 英语"},
+            "unit_num": {"type": "integer", "description": "Unit index, e.g. 1 for 第一单元"},
+            "unit_id": {"type": "string", "description": "Exact catalog unit_id if known"},
+            "title_contains": {"type": "string", "description": "Substring match on unit_title"},
+        },
+        "required": [],
+    },
+}
+
+LEARNING_FOCUS_SET_SCHEMA = {
+    "name": "learning_focus_set",
+    "description": (
+        "Switch persisted StudentContext to a catalog unit (rebuilds push queue). "
+        "Call when the student clearly wants another subject/unit. Ask first if unsure."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "student_id": {"type": "string"},
+            "unit_id": {"type": "string"},
+            "reason": {"type": "string"},
+        },
+        "required": ["unit_id"],
     },
 }
 
@@ -850,6 +975,22 @@ def register_student_hermes_tools(ctx) -> None:
         handler=lambda args, **kw: gap_map_query(args, **kw),
         check_fn=check_student_tools_available,
         emoji="🗺️",
+    )
+    ctx.register_tool(
+        name="learning_catalog_lookup",
+        toolset="agent_student",
+        schema=LEARNING_CATALOG_LOOKUP_SCHEMA,
+        handler=lambda args, **kw: learning_catalog_lookup(args, **kw),
+        check_fn=check_student_tools_available,
+        emoji="📚",
+    )
+    ctx.register_tool(
+        name="learning_focus_set",
+        toolset="agent_student",
+        schema=LEARNING_FOCUS_SET_SCHEMA,
+        handler=lambda args, **kw: learning_focus_set(args, **kw),
+        check_fn=check_student_tools_available,
+        emoji="🎯",
     )
     ctx.register_tool(
         name="attempt_submit",
@@ -932,7 +1073,8 @@ def register_student_hermes_tools(ctx) -> None:
         emoji="📝",
     )
     logger.info(
-        "agent-student: pre_llm hook + student_context_get, gap_map_query, "
-        "attempt_submit, attempt_submit_freeform, questions_suggest, explain_kp, push_queue_peek, question_get, "
+        "agent-student: pre_llm hook + learning_catalog_lookup, learning_focus_set, "
+        "student_context_get, gap_map_query, attempt_submit, attempt_submit_freeform, "
+        "questions_suggest, explain_kp, push_queue_peek, question_get, "
         "student_answer_gate, student_safety_check, study_plan_generate"
     )

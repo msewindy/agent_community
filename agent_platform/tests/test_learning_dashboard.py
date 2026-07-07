@@ -25,8 +25,8 @@ def dash_client(tmp_path: Path) -> tuple[TestClient, str]:
     ctx = StudentContextService(data_root=data)
     onboarding = OnboardingService(data_root=data, context_svc=ctx, catalog=catalog)
     sid = "stu-dash"
-    ctx.init_from_defaults(sid, unit_id="math-g3-mixed-ops")
-    onboarding.onboard(sid, grade_level=3, grade="三年级", active_unit_id="math-g3-mixed-ops")
+    ctx.init_from_defaults(sid, unit_id="math-g3-u01")
+    onboarding.onboard(sid, grade_level=3, grade="三年级", active_unit_id="math-g3-u01")
     cfg = {"data": {"root": str(data)}, "web_panel": {"port": 8770}, "pilot": {"grade_level": 3}}
     client = TestClient(create_app(config=cfg, catalog_svc=catalog, context_svc=ctx))
     return client, sid
@@ -54,6 +54,6 @@ def test_learning_profile_unit_filter(dash_client) -> None:
     client, sid = dash_client
     res = client.get(
         f"/api/students/{sid}/learning-profile",
-        params={"unit_id": "math-g3-mixed-ops", "include_pending": "false"},
+        params={"unit_id": "math-g3-u01", "include_pending": "false"},
     )
     assert res.status_code == 200

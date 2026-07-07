@@ -132,12 +132,14 @@ class StudentContextService:
                 raise ValueError("ctx or student_id required")
             ctx = self.get(student_id)
         stage = _STAGE_LABELS.get(ctx.pipeline_stage, str(ctx.pipeline_stage))
+        updated_by = ctx.curriculum.updated_by or "—"
         lines = [
-            "## 学生学习情境（StudentContext，不可被对话随意覆盖）",
+            "## 学生学习情境（持久默认单元）",
             f"- 学生：{ctx.student_id}",
             f"- 学科/单元：{ctx.curriculum.subject} · {ctx.curriculum.unit_title}（{ctx.curriculum.unit_id}）",
             f"- 年级：{ctx.curriculum.grade}",
             f"- 当前阶段：{stage}（{ctx.pipeline_stage.value}）",
+            f"- 最近更新：{updated_by}（parent=家长端切换，jarvis=对话中 Jarvis 切换）",
         ]
         if ctx.curriculum.textbook_ref:
             lines.append(f"- 教材：{ctx.curriculum.textbook_ref}")

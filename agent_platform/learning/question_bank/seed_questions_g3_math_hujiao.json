@@ -1,0 +1,447 @@
+{
+  "schema_version": "1.0.0",
+  "subject": "数学",
+  "grade": 3,
+  "questions": [
+    {
+      "question_id": "q-math-g3-u01-001",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：7 × 5 = ?",
+      "answer_type": "exact",
+      "expected_answer": "35",
+      "explanation": "按运算顺序：7 × 5 = 35",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-002",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：24 ÷ 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "按运算顺序：24 ÷ 4 = 6",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-003",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：59 - 9 × 3 = ?",
+      "answer_type": "exact",
+      "expected_answer": "32",
+      "explanation": "按运算顺序：59 - 9 × 3 = 32",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-004",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：70 × 5 = ?",
+      "answer_type": "exact",
+      "expected_answer": "350",
+      "explanation": "按运算顺序：70 × 5 = 350",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-005",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：240 ÷ 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "60",
+      "explanation": "按运算顺序：240 ÷ 4 = 60",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-006",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-add",
+      "stem": "计算：62 + 18 ÷ 2 = ?",
+      "answer_type": "exact",
+      "expected_answer": "71",
+      "explanation": "按运算顺序：62 + 18 ÷ 2 = 71",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-007",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：7 × 500 = ?",
+      "answer_type": "exact",
+      "expected_answer": "3500",
+      "explanation": "按运算顺序：7 × 500 = 3500",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-008",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：48 ÷ 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "12",
+      "explanation": "按运算顺序：48 ÷ 4 = 12",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-009",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-same-level",
+      "stem": "计算：38 + 20 - 13 = ?",
+      "answer_type": "exact",
+      "expected_answer": "45",
+      "explanation": "按运算顺序：38 + 20 - 13 = 45",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-010",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：6 + 3 × 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "18",
+      "explanation": "先算乘法 3×4=12，再算加法 6+12=18。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-011",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：3 × 4 + 6 = ?",
+      "answer_type": "exact",
+      "expected_answer": "18",
+      "explanation": "先算乘法 3×4=12，再算加法 12+6=18。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-012",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：5 × 3 + 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "19",
+      "explanation": "先算 5×3=15，再算 15+4=19。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-013",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：4 × 6 + 25 = ?",
+      "answer_type": "exact",
+      "expected_answer": "49",
+      "explanation": "先算 4×6=24，再算 24+25=49。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-014",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：33 + 7 × 3 = ?",
+      "answer_type": "exact",
+      "expected_answer": "54",
+      "explanation": "先算 7×3=21，再算 33+21=54。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-015",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-add",
+      "stem": "计算：20 + 3 × 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "32",
+      "explanation": "先算 3×4=12，再算 20+12=32。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-016",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：20 - 3 × 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "8",
+      "explanation": "先算 3×4=12，再算 20-12=8。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-017",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：20 - 2 × 7 = ?",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "先算 2×7=14，再算 20-14=6。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-018",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：50 - 5 × 9 = ?",
+      "answer_type": "exact",
+      "expected_answer": "5",
+      "explanation": "先算 5×9=45，再算 50-45=5。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-019",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：86 - 6 × 8 = ?",
+      "answer_type": "exact",
+      "expected_answer": "38",
+      "explanation": "先算 6×8=48，再算 86-48=38。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-020",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：4 × 6 - 20 = ?",
+      "answer_type": "exact",
+      "expected_answer": "4",
+      "explanation": "先算 4×6=24，再算 24-20=4。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-021",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-mult-sub",
+      "stem": "计算：5 × 7 - 16 = ?",
+      "answer_type": "exact",
+      "expected_answer": "19",
+      "explanation": "先算 5×7=35，再算 35-16=19。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-022",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-add",
+      "stem": "计算：18 ÷ 3 + 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "10",
+      "explanation": "先算 18÷3=6，再算 6+4=10。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-023",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-add",
+      "stem": "计算：14 ÷ 2 + 5 = ?",
+      "answer_type": "exact",
+      "expected_answer": "12",
+      "explanation": "先算 14÷2=7，再算 7+5=12。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-024",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-add",
+      "stem": "计算：9 + 81 ÷ 9 = ?",
+      "answer_type": "exact",
+      "expected_answer": "18",
+      "explanation": "先算 81÷9=9，再算 9+9=18。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-025",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-sub",
+      "stem": "计算：16 ÷ 2 - 7 = ?",
+      "answer_type": "exact",
+      "expected_answer": "1",
+      "explanation": "先算 16÷2=8，再算 8-7=1。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-026",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-sub",
+      "stem": "计算：25 - 10 ÷ 5 = ?",
+      "answer_type": "exact",
+      "expected_answer": "23",
+      "explanation": "先算 10÷5=2，再算 25-2=23（不能先算 25-10）。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-027",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-sub",
+      "stem": "计算：5 - 12 ÷ 3 = ?",
+      "answer_type": "exact",
+      "expected_answer": "1",
+      "explanation": "先算 12÷3=4，再算 5-4=1。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-028",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-sub",
+      "stem": "计算：45 - 24 ÷ 6 = ?",
+      "answer_type": "exact",
+      "expected_answer": "41",
+      "explanation": "先算 24÷6=4，再算 45-4=41。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-029",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-div-sub",
+      "stem": "计算：72 ÷ 8 - 3 = ?",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "先算 72÷8=9，再算 9-3=6。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-030",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-same-level",
+      "stem": "计算：54 + 36 - 18 = ?",
+      "answer_type": "exact",
+      "expected_answer": "72",
+      "explanation": "只有加减，从左到右：54+36=90，90-18=72。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-031",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-same-level",
+      "stem": "计算：100 - 75 + 25 = ?",
+      "answer_type": "exact",
+      "expected_answer": "50",
+      "explanation": "只有加减，从左到右：100-75=25，25+25=50。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-032",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-same-level",
+      "stem": "计算：28 + 65 - 85 = ?",
+      "answer_type": "exact",
+      "expected_answer": "8",
+      "explanation": "从左到右：28+65=93，93-85=8。",
+      "default_error_code": "CALCULATION_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-033",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：(29 + 25) ÷ 9 = ?",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "先算括号内 29+25=54，再算 54÷9=6。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-034",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：54 ÷ (9 - 3) = ?",
+      "answer_type": "exact",
+      "expected_answer": "9",
+      "explanation": "先算括号内 9-3=6，再算 54÷6=9。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-035",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：(70 - 46) ÷ 8 = ?",
+      "answer_type": "exact",
+      "expected_answer": "3",
+      "explanation": "先算 70-46=24，再算 24÷8=3。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-036",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：(99 - 78) ÷ 3 = ?",
+      "answer_type": "exact",
+      "expected_answer": "7",
+      "explanation": "先算 99-78=21，再算 21÷3=7。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-037",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：100 - (72 + 28) = ?",
+      "answer_type": "exact",
+      "expected_answer": "0",
+      "explanation": "先算括号内 72+28=100，再算 100-100=0。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-038",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：(18 + 18) ÷ 4 = ?",
+      "answer_type": "exact",
+      "expected_answer": "9",
+      "explanation": "先算 18+18=36，再算 36÷4=9。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-039",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-parentheses",
+      "stem": "计算：36 ÷ (3 + 3) = ?",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "先算 3+3=6，再算 36÷6=6。",
+      "default_error_code": "PROCEDURE_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-040",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-word-problem",
+      "stem": "淘气的3本练习本共18元，1本英语本4元。买1本练习本和1本英语本一共多少元？（只答数字）",
+      "answer_type": "exact",
+      "expected_answer": "10",
+      "explanation": "先求练习本单价 18÷3=6 元，再算 6+4=10 元。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-041",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-word-problem",
+      "stem": "有34辆单人自行车和8辆双人自行车，一共可以坐多少人？（只答数字）",
+      "answer_type": "exact",
+      "expected_answer": "50",
+      "explanation": "双人车可坐 8×2=16 人，共 34+16=50 人。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-042",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-word-problem",
+      "stem": "李叔叔带100元买一袋64元的米，剩下的钱每袋6元的面还可以买几袋？（只答数字）",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "剩 100-64=36 元，36÷6=6 袋。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-043",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-word-problem",
+      "stem": "有18名男生和18名女生，平均分成4排，每排几人？（只答数字）",
+      "answer_type": "exact",
+      "expected_answer": "9",
+      "explanation": "共 18+18=36 人，36÷4=9 人。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-math-g3-u01-044",
+      "unit_id": "math-g3-u01",
+      "knowledge_point_id": "kp-math-g3-u01-expr-meaning",
+      "stem": "根据「3个男孩和3个女孩组成1个图案」，36人最多能组成几个图案？列式 36÷(3+3) 得多少？（只答数字）",
+      "answer_type": "exact",
+      "expected_answer": "6",
+      "explanation": "每个图案需 3+3=6 人，36÷6=6 个图案。",
+      "default_error_code": "READING_ERROR"
+    }
+  ]
+}

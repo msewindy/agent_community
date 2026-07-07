@@ -46,19 +46,19 @@ def test_learning_unit_get_and_switch(panel_with_student) -> None:
     assert snap.status_code == 200
     body = snap.json()
     assert body["current"]["unit_id"] == "math-g2-add-sub-100"
-    assert any(c["unit_id"] == "math-g3-mixed-ops" for c in body["choices"])
+    assert any(c["unit_id"] == "math-g3-u01" for c in body["choices"])
 
     switched = client.post(
         f"/api/students/{sid}/learning-unit",
-        json={"unit_id": "math-g3-mixed-ops"},
+        json={"unit_id": "math-g3-u01"},
     )
     assert switched.status_code == 200, switched.text
     result = switched.json()
-    assert result["new_unit_id"] == "math-g3-mixed-ops"
+    assert result["new_unit_id"] == "math-g3-u01"
     assert result["pipeline_stage"] == "learning"
 
     snap2 = client.get(f"/api/students/{sid}/learning-unit")
-    assert snap2.json()["current"]["unit_id"] == "math-g3-mixed-ops"
+    assert snap2.json()["current"]["unit_id"] == "math-g3-u01"
 
 
 def test_panel_shows_overview(panel_with_student) -> None:

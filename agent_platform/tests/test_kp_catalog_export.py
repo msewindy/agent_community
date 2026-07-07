@@ -15,7 +15,7 @@ from agent_platform.learning.question_bank import QuestionBankService
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SEED_CATALOG = REPO_ROOT / "agent_platform" / "learning" / "catalog" / "kp_catalog.json"
-G3_SEED = REPO_ROOT / "agent_platform" / "learning" / "question_bank" / "seed_questions_g3_math_mixed_ops.json"
+G3_SEED = REPO_ROOT / "agent_platform" / "learning" / "question_bank" / "seed_questions_g3_math_hujiao.json"
 
 
 @pytest.fixture
@@ -33,22 +33,22 @@ def bank(tmp_path: Path) -> QuestionBankService:
 def test_export_math_grade3_round_trip(catalog: KpCatalogService, bank: QuestionBankService) -> None:
     svc = KpCatalogExportService(catalog=catalog, bank=bank)
     result, draft = svc.export_and_validate(subject="数学", grade=3)
-    assert "math-g3-mixed-ops" in result.unit_ids
+    assert "math-g3-u01" in result.unit_ids
     assert result.knowledge_point_count >= 1
     assert result.question_count >= 1
     assert "## 练习题" in result.content
     assert draft.subject == "数学"
     assert draft.grade == 3
-    assert any(u.unit_id == "math-g3-mixed-ops" for u in draft.units)
+    assert any(u.unit_id == "math-g3-u01" for u in draft.units)
     assert draft.question_count >= 1
 
 
 def test_export_single_unit_filename(catalog: KpCatalogService, bank: QuestionBankService) -> None:
     svc = KpCatalogExportService(catalog=catalog, bank=bank)
-    result = svc.export(subject="数学", grade=3, unit_id="math-g3-mixed-ops")
-    assert result.filename == "math-g3-mixed-ops.kp.md"
-    assert result.unit_ids == ["math-g3-mixed-ops"]
-    assert "unit_id: math-g3-mixed-ops" in result.content
+    result = svc.export(subject="数学", grade=3, unit_id="math-g3-u01")
+    assert result.filename == "math-g3-u01.kp.md"
+    assert result.unit_ids == ["math-g3-u01"]
+    assert "unit_id: math-g3-u01" in result.content
 
 
 def test_export_without_questions(catalog: KpCatalogService, bank: QuestionBankService) -> None:
@@ -56,7 +56,7 @@ def test_export_without_questions(catalog: KpCatalogService, bank: QuestionBankS
     result = svc.export(
         subject="数学",
         grade=3,
-        unit_id="math-g3-mixed-ops",
+        unit_id="math-g3-u01",
         include_questions=False,
     )
     assert "## 练习题" not in result.content

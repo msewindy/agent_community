@@ -49,6 +49,7 @@ class LearningUnitSnapshot:
     choices: list[UnitChoice]
     pipeline_stage: str
     queue_size: int = 0
+    updated_by: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -58,6 +59,7 @@ class LearningUnitSnapshot:
             "choices": [c.to_dict() for c in self.choices],
             "pipeline_stage": self.pipeline_stage,
             "queue_size": self.queue_size,
+            "updated_by": self.updated_by,
         }
 
 
@@ -179,9 +181,16 @@ class UnitSwitchService:
             choices=choices,
             pipeline_stage=ctx.pipeline_stage.value,
             queue_size=queue_size,
+            updated_by=ctx.curriculum.updated_by,
         )
 
-    def switch_active_unit(self, student_id: str, unit_id: str) -> UnitSwitchResult:
+    def switch_active_unit(
+        self,
+        student_id: str,
+        unit_id: str,
+        *,
+        updated_by: str = "parent",
+    ) -> UnitSwitchResult:
         if not self._ctx.exists(student_id):
             raise FileNotFoundError(f"student context not found: {student_id}")
 
@@ -214,7 +223,7 @@ class UnitSwitchService:
             unit_title=unit.unit_title,
             textbook_ref=unit.textbook_ref or ctx.curriculum.textbook_ref,
             grade_level=grade_level,
-            updated_by="parent",
+            updated_by=updated_by,
         )
 
         self._ctx.patch(

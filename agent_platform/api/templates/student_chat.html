@@ -338,6 +338,7 @@
       let buffer = '';
       let sessionOut = null;
       let streamError = null;
+      let sanitizedReply = null;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -353,10 +354,11 @@
           if (data.done) {
             sessionOut = data.session_id || sessionOut;
             if (data.error && data.error !== 'cancelled') streamError = data.error;
+            if (data.reply) sanitizedReply = data.reply;
           }
         }
       }
-      return { session_id: sessionOut, error: streamError };
+      return { session_id: sessionOut, error: streamError, reply: sanitizedReply };
     }
 
     async function sendMessage(overrideText) {
@@ -417,6 +419,7 @@
           if (streamResult.session_id) sessionId = streamResult.session_id;
           if (streamResult.error && !fullReply) throw new Error(streamResult.error);
           if (fullReply) {
+            if (streamResult.reply) fullReply = streamResult.reply;
             if (typingEl) { typingEl.remove(); typingEl = null; }
             const made = addJarvisReply(fullReply);
             if (autoSpeak && lastInputWasVoice && made && made.btn) {
@@ -583,7 +586,9 @@
     let listening = false;
     let voiceFinishMode = null;   // 'manual' | 'silence'
     let voiceSendTimer = null;
+    let voiceNoSpeechRetries = 0;
     const VOICE_SILENCE_MS = 2800;  // 停顿约 2.8 秒才自动发送，短停顿不会截断
+    const VOICE_NO_SPEECH_MAX = 3;    // no-speech 时自动续听次数（孩子开口前常有停顿）
 
     function clearVoiceSendTimer() {
       if (voiceSendTimer) { clearTimeout(voiceSendTimer); voiceSendTimer = null; }
@@ -624,21 +629,58 @@
         listening = true;
         voiceFinishMode = null;
         micBtn.classList.add('recording');
-        hint.textContent = '🎤 在听…说完点 🎤，或停顿约 3 秒自动发送';
+        hint.textContent = voiceNoSpeechRetries > 0
+          ? '🎤 在听…请对着麦克风说话'
+          : '🎤 在听…说完点 🎤，或停顿约 3 秒自动发送';
       };
       recog.onerror = (e) => {
         if (e.error === 'aborted') return;
-        hint.textContent = e.error === 'not-allowed'
-          ? '没有麦克风权限，请允许后再试～'
-          : '没听清，再说一次好吗？';
+        if (e.error === 'no-speech') {
+          // 常见：开口太慢或音量太小；Chrome 会先报 no-speech 再 onend，由 onend 决定是否续听
+          console.warn('[voice] no-speech (will retry if still listening)');
+          return;
+        }
+        console.error('[voice] SpeechRecognition error:', e.error, e.message || '');
+        if (e.error === 'not-allowed') {
+          hint.textContent = '没有麦克风权限，请允许后再试～';
+        } else if (e.error === 'network') {
+          hint.textContent = '语音服务连不上（network），请检查网络或改用打字～';
+        } else {
+          hint.textContent = `没听清（${e.error}），再说一次好吗？`;
+        }
       };
       recog.onend = () => {
+        clearVoiceSendTimer();
+        if (voiceFinishMode) {
+          listening = false;
+          micBtn.classList.remove('recording');
+          finishVoiceAndSend();
+          voiceNoSpeechRetries = 0;
+          return;
+        }
+        // no-speech：输入框仍空且用户未手动停止 → 自动续听几次
+        if (!msg.value.trim() && voiceNoSpeechRetries < VOICE_NO_SPEECH_MAX) {
+          voiceNoSpeechRetries += 1;
+          hint.textContent = '🎤 没听到声音，继续听…请对着麦克风说话';
+          setTimeout(() => {
+            try { recog.start(); } catch (e) {
+              console.warn('[voice] retry start failed', e);
+              listening = false;
+              micBtn.classList.remove('recording');
+              hint.textContent = '没听到声音，请靠近麦克风后再点 🎤';
+            }
+          }, 120);
+          return;
+        }
         listening = false;
         micBtn.classList.remove('recording');
-        clearVoiceSendTimer();
-        if (voiceFinishMode) finishVoiceAndSend();
+        voiceNoSpeechRetries = 0;
+        if (!msg.value.trim()) {
+          hint.textContent = '没听到声音，请靠近麦克风，说完再点 🎤 结束';
+        }
       };
       recog.onresult = (event) => {
+        voiceNoSpeechRetries = 0;
         let txt = '';
         for (let i = 0; i < event.results.length; i++) {
           txt += event.results[i][0].transcript;
@@ -651,16 +693,25 @@
       };
 
       micBtn.addEventListener('click', () => {
-        if (busy) { abortChat(); return; }
         if (listening) {
           voiceFinishMode = 'manual';
-          try { recog.stop(); } catch (e) { /* ignore */ }
+          try { recog.stop(); } catch (e) { console.warn('[voice] stop failed', e); }
+          return;
+        }
+        if (busy) {
+          hint.textContent = '小助手还在想，请稍等再试语音～';
           return;
         }
         stopAudio();
         msg.value = '';
         autoGrow();
-        try { recog.start(); } catch (e) { /* 已在监听 */ }
+        voiceNoSpeechRetries = 0;
+        try {
+          recog.start();
+        } catch (e) {
+          console.warn('[voice] start failed (maybe already running):', e);
+          hint.textContent = '语音启动失败，请再点一次 🎤';
+        }
       });
     }
   </script>

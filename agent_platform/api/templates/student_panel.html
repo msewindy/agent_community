@@ -152,7 +152,7 @@
       <h2>当前学习单元</h2>
       <p class="sub">孩子「来几道题」默认从此单元选题。</p>
       <div><strong>${cur.unit_title || "—"}</strong> <code>${cur.unit_id || ""}</code></div>
-      <div class="hint" style="margin-top:0.35rem">题库 ${cur.question_count || 0} 道 · 队列 ${data.queue_size || 0} 道</div>
+      <div class="hint" style="margin-top:0.35rem">题库 ${cur.question_count || 0} 道 · 队列 ${data.queue_size || 0} 道 · 最近更新：${data.updated_by === "jarvis" ? "Jarvis 对话" : data.updated_by === "parent" ? "家长端" : (data.updated_by || "—")}</div>
       ${noQ ? '<div class="unit-warn">⚠ 当前单元无练习题，请先到题库管理录入。</div>' : ""}
       <div class="toolbar" style="margin-bottom:0">
         <label>切换到 <select id="unitSelect">${opts}</select></label>

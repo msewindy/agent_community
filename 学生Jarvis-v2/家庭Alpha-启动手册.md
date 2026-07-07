@@ -2,7 +2,7 @@
 
 > **版本**：学生 Jarvis v2 · 家庭 Alpha · 三年级学习版（2026-Q3）  
 > **学生**：`g2-stu-01`（单用户；**全新试用时学情从零**，姓名由对话/M2 写入，不在配置里写死）  
-> **主攻单元**：数学 · `math-g3-mixed-ops`（混合运算）  
+> **主攻单元**：数学 · `math-g3-u01`（两步四则运算）  
 > **状态**：封版可试用  
 > **前置**：若环境未装/需清数据 → [家庭Alpha-全新部署手册.md](./家庭Alpha-全新部署手册.md) 或 `scripts/wsl_family_alpha_reset.sh`  
 > **手动验证**：[家庭Alpha-手动验证手册.md](./家庭Alpha-手动验证手册.md)（上线前逐项打勾）
@@ -107,7 +107,7 @@ $PY -m uvicorn agent_platform.api.student_panel:app --host 0.0.0.0 --port 8770
 
 ### 4.3 当前学习单元
 
-- **主路径**：孩子与 Jarvis 对话（Agent 调用 `student_context_update`）  
+- **主路径**：孩子与 Jarvis 对话（Agent 调用 `learning_catalog_lookup` + `learning_focus_set` 切换单元；讲新课务必 `explain_kp`）  
 - **纠偏**：CLI `cli_student onboard g2-stu-01 --unit <unit_id> ...` 后 `push rebuild g2-stu-01`
 
 ### 4.4 常见问题

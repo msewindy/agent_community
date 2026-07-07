@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>语音识别诊断 · Student Jarvis</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; line-height: 1.5; }
+    h1 { font-size: 1.25rem; }
+    .note { background: #fff8e1; border: 1px solid #ffe082; padding: 12px; border-radius: 8px; margin: 16px 0; }
+    button { font-size: 1rem; padding: 10px 20px; margin: 8px 8px 8px 0; cursor: pointer; }
+    button.recording { background: #e53935; color: #fff; border-color: #c62828; }
+    #log { background: #111; color: #0f0; font-family: monospace; font-size: 12px; padding: 12px; border-radius: 8px;
+           max-height: 420px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    #status { font-weight: 600; margin: 12px 0; }
+    #transcript { min-height: 48px; border: 1px dashed #999; padding: 8px; border-radius: 6px; margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <h1>🎤 浏览器语音识别诊断</h1>
+  <div class="note">
+    <strong>说明：</strong>学生聊天页使用 <code>Web Speech API</code>（浏览器内置），<strong>不会</strong>向
+    <code>localhost:8771</code> 发语音识别请求。Network 里通常看不到本项目的 ASR 接口；Chrome 可能连
+    Google 语音服务（国内常失败，错误码 <code>network</code>）。
+  </div>
+  <p id="support"></p>
+  <p id="status">就绪</p>
+  <button type="button" id="startBtn">开始听</button>
+  <button type="button" id="stopBtn" disabled>停止</button>
+  <div><strong>识别文本：</strong></div>
+  <div id="transcript">（暂无）</div>
+  <div><strong>事件日志：</strong></div>
+  <div id="log"></div>
+  <script>
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+    const transcriptEl = document.getElementById('transcript');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function ts() {
+      return new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    }
+    function log(msg) {
+      logEl.textContent += `[${ts()}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log('[speech-diag]', msg);
+    }
+
+    document.getElementById('support').textContent = SR
+      ? `✅ 支持 SpeechRecognition（${SR.name}）`
+      : '❌ 不支持 Web Speech API，请用 Chrome / Edge';
+
+    if (!SR) {
+      startBtn.disabled = true;
+    } else {
+      const recog = new SR();
+      recog.lang = 'zh-CN';
+      recog.interimResults = true;
+      recog.continuous = true;
+
+      recog.onstart = () => {
+        statusEl.textContent = '🎤 在听…';
+        startBtn.classList.add('recording');
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        log('onstart');
+      };
+      recog.onerror = (e) => {
+        log(`onerror: ${e.error}${e.message ? ' — ' + e.message : ''}`);
+        statusEl.textContent = `错误: ${e.error}`;
+      };
+      recog.onend = () => {
+        statusEl.textContent = '已停止';
+        startBtn.classList.remove('recording');
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        log('onend');
+      };
+      recog.onresult = (event) => {
+        let txt = '';
+        for (let i = 0; i < event.results.length; i++) {
+          const r = event.results[i];
+          txt += r[0].transcript;
+          log(`onresult[${i}] isFinal=${r.isFinal} conf=${r[0].confidence} text="${r[0].transcript}"`);
+        }
+        transcriptEl.textContent = txt || '（空）';
+      };
+      recog.onaudiostart = () => log('onaudiostart');
+      recog.onaudioend = () => log('onaudioend');
+      recog.onsoundstart = () => log('onsoundstart');
+      recog.onsoundend = () => log('onsoundend');
+      recog.onspeechstart = () => log('onspeechstart');
+      recog.onspeechend = () => log('onspeechend');
+      recog.onnomatch = () => log('onnomatch');
+
+      startBtn.addEventListener('click', () => {
+        transcriptEl.textContent = '（暂无）';
+        log('--- start() ---');
+        try {
+          recog.start();
+        } catch (e) {
+          log(`start() 异常: ${e.name}: ${e.message}`);
+        }
+      });
+      stopBtn.addEventListener('click', () => {
+        log('--- stop() ---');
+        try { recog.stop(); } catch (e) { log(`stop() 异常: ${e.message}`); }
+      });
+    }
+  </script>
+</body>
+</html>

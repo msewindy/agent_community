@@ -65,6 +65,270 @@
       ]
     },
     {
+      "unit_id": "chinese-g3-u01",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "美丽的校园",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u01-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u01-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u01-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u01-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u01-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u01-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u02",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "金秋时节",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u02-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u02-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u02-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u02-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u02-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u02-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u03",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "预测",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u03-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u03-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u03-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u03-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u03-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u03-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u04",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "观察",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u04-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u04-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u04-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u04-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u04-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u04-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u05",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "祖国的山河",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u05-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u05-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u05-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u05-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u05-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u05-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u06",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "自然奇观",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u06-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u06-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u06-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u06-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u06-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u06-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u07",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "童话世界",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u07-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u07-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u07-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u07-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u07-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u07-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
+      "unit_id": "chinese-g3-u08",
+      "grade": 3,
+      "subject": "语文",
+      "unit_title": "智慧火花",
+      "textbook_ref": "部编版·三年级语文上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-zh-g3-u08-char",
+          "title": "识字与写字"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u08-garden",
+          "title": "语文园地"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u08-oral",
+          "title": "口语交际"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u08-reading",
+          "title": "课文阅读理解"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u08-vocab",
+          "title": "词语积累"
+        },
+        {
+          "knowledge_point_id": "kp-zh-g3-u08-writing",
+          "title": "习作"
+        }
+      ]
+    },
+    {
       "unit_id": "english-g3-u01",
       "grade": 3,
       "subject": "英语",
@@ -381,43 +645,210 @@
       ]
     },
     {
-      "unit_id": "math-g3-mixed-ops",
+      "unit_id": "math-g3-u01",
       "grade": 3,
       "subject": "数学",
-      "unit_title": "混合运算（第一单元）",
-      "textbook_ref": "北师大版·三年级上册",
+      "unit_title": "两步四则运算与应用题",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
       "knowledge_points": [
         {
-          "knowledge_point_id": "kp-g3-mix-div-add",
+          "knowledge_point_id": "kp-math-g3-u01-div-add",
           "title": "除加混合运算（先除后加）"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-div-sub",
+          "knowledge_point_id": "kp-math-g3-u01-div-sub",
           "title": "除减混合运算（先除后减）"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-expr-meaning",
+          "knowledge_point_id": "kp-math-g3-u01-expr-meaning",
           "title": "综合算式情境含义"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-mult-add",
+          "knowledge_point_id": "kp-math-g3-u01-mult-add",
           "title": "乘加混合运算（先乘后加）"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-mult-sub",
+          "knowledge_point_id": "kp-math-g3-u01-mult-sub",
           "title": "乘减混合运算（先乘后减）"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-parentheses",
+          "knowledge_point_id": "kp-math-g3-u01-parentheses",
           "title": "小括号运算（先算括号内）"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-same-level",
+          "knowledge_point_id": "kp-math-g3-u01-same-level",
           "title": "同级混合运算（从左到右）"
         },
         {
-          "knowledge_point_id": "kp-g3-mix-word-problem",
+          "knowledge_point_id": "kp-math-g3-u01-word-problem",
           "title": "混合运算应用题列式"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u02",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "用一位数乘",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u02-mult-2digit",
+          "title": "两位数乘一位数"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u02-mult-3digit",
+          "title": "三位数乘一位数"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u02-mult-tens",
+          "title": "整十、整百数乘一位数"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u02-mult-word",
+          "title": "乘法应用题"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u03",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "三角形与四边形",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u03-classify",
+          "title": "图形分类"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u03-properties",
+          "title": "图形特征"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u03-quadrilateral",
+          "title": "认识四边形"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u03-triangle",
+          "title": "认识三角形"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u04",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "用一位数除",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u04-div-2digit",
+          "title": "两位数除以一位数"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u04-div-3digit",
+          "title": "三位数除以一位数"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u04-div-tens",
+          "title": "整十、整百数除以一位数"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u04-div-word",
+          "title": "除法应用题"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u05",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "年、月、日的秘密",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u05-calendar",
+          "title": "年、月、日认识"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u05-date-problem",
+          "title": "日期应用题"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u05-duration",
+          "title": "时间计算"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u05-leap",
+          "title": "平年与闰年"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u06",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "周长",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u06-perimeter-calc",
+          "title": "周长计算"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u06-perimeter-concept",
+          "title": "周长的认识"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u06-perimeter-rect",
+          "title": "长方形、正方形周长"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u06-perimeter-word",
+          "title": "周长应用题"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u07",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "马拉松的路线设计",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u07-distance",
+          "title": "路程问题"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u07-plan",
+          "title": "方案设计"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u07-route",
+          "title": "路线与方向"
+        }
+      ]
+    },
+    {
+      "unit_id": "math-g3-u08",
+      "grade": 3,
+      "subject": "数学",
+      "unit_title": "数学广场",
+      "textbook_ref": "沪教版（五·四学制）·三年级数学上册",
+      "knowledge_points": [
+        {
+          "knowledge_point_id": "kp-math-g3-u08-game",
+          "title": "数学游戏"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u08-pattern",
+          "title": "规律与推理"
+        },
+        {
+          "knowledge_point_id": "kp-math-g3-u08-review",
+          "title": "单元复习"
         }
       ]
     }

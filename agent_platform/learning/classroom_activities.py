@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from agent_platform.learning._config import load_student_learning_config, repo_root
+from agent_platform.learning.g3_textbook_common import unit_id_for
 from agent_platform.learning.hujiao_g3_english_parser import ExtractedExercise
 from agent_platform.learning.store import _atomic_write_json
 
@@ -52,7 +53,7 @@ def save_from_pending_exercises(
 
     units = []
     for num in sorted(by_unit):
-        unit_id = f"english-g3-u{num:02d}"
+        unit_id = unit_id_for(subject, grade, num)
         units.append(
             {
                 "unit_id": unit_id,

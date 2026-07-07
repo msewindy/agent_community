@@ -25,8 +25,8 @@ def dash_client(tmp_path: Path) -> tuple[TestClient, str]:
     ctx = StudentContextService(data_root=data)
     onboarding = OnboardingService(data_root=data, context_svc=ctx, catalog=catalog)
     sid = "stu-att"
-    ctx.init_from_defaults(sid, unit_id="math-g3-mixed-ops")
-    onboarding.onboard(sid, grade_level=3, grade="三年级", active_unit_id="math-g3-mixed-ops")
+    ctx.init_from_defaults(sid, unit_id="math-g3-u01")
+    onboarding.onboard(sid, grade_level=3, grade="三年级", active_unit_id="math-g3-u01")
     cfg = {
         "data": {"root": str(data)},
         "web_panel": {"port": 8770},

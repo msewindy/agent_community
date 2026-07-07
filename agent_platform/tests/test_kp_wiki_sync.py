@@ -30,7 +30,7 @@ def wiki_env(tmp_path: Path):
 
 def test_render_kp_wiki_markdown_includes_ids(wiki_env) -> None:
     catalog, _ = wiki_env
-    unit = catalog.get_unit("math-g3-mixed-ops")
+    unit = catalog.get_unit("math-g3-u01")
     kp = unit.knowledge_points[0]
     text = render_kp_wiki_markdown(
         kp=kp,
@@ -44,7 +44,7 @@ def test_render_kp_wiki_markdown_includes_ids(wiki_env) -> None:
 
 def test_sync_unit_creates_raw_and_compiled(wiki_env) -> None:
     catalog, wiki = wiki_env
-    unit = catalog.get_unit("math-g3-mixed-ops")
+    unit = catalog.get_unit("math-g3-u01")
     report = wiki.sync_unit_from_catalog(unit, force=True)
     assert report.pages_synced == len(unit.knowledge_points)
     raw = wiki.raw_path_for_kp(unit.knowledge_points[0].knowledge_point_id)
@@ -52,9 +52,27 @@ def test_sync_unit_creates_raw_and_compiled(wiki_env) -> None:
     assert (wiki.layout.concepts_dir).exists()
 
 
+def test_fetch_teaching_context_prefers_raw(wiki_env) -> None:
+    catalog, wiki = wiki_env
+    unit = catalog.get_unit("math-g3-u01")
+    kp_id = unit.knowledge_points[0].knowledge_point_id
+    wiki.sync_unit_from_catalog(unit, force=True)
+    ctx = wiki.fetch_teaching_context(kp_id)
+    assert ctx["success"] is True
+    assert ctx.get("source") == "raw"
+    assert ctx.get("description_text")
+
+
+def test_extract_description_from_raw() -> None:
+    from agent_platform.learning.kp_wiki_sync import extract_description_from_raw_markdown
+
+    body = "# Title\n\n## 讲解要点\n\n- hello word\n\n## 教学提示\n\n- tip"
+    assert extract_description_from_raw_markdown(body) == "- hello word"
+
+
 def test_fetch_teaching_context_after_sync(wiki_env) -> None:
     catalog, wiki = wiki_env
-    unit = catalog.get_unit("math-g3-mixed-ops")
+    unit = catalog.get_unit("math-g3-u01")
     kp_id = unit.knowledge_points[0].knowledge_point_id
     wiki.sync_unit_from_catalog(unit, force=True)
     ctx = wiki.fetch_teaching_context(kp_id)
@@ -65,7 +83,7 @@ def test_fetch_teaching_context_after_sync(wiki_env) -> None:
 
 def test_explain_kp_tool(wiki_env, monkeypatch: pytest.MonkeyPatch) -> None:
     catalog, wiki = wiki_env
-    unit = catalog.get_unit("math-g3-mixed-ops")
+    unit = catalog.get_unit("math-g3-u01")
     kp_id = unit.knowledge_points[0].knowledge_point_id
     wiki.sync_unit_from_catalog(unit, force=True)
     monkeypatch.setattr(

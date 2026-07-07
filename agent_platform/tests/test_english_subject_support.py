@@ -63,7 +63,7 @@ def test_prompts_use_current_subject() -> None:
     ctx = format_pre_llm_context(prompt_block=block, gaps=[], user_message="讲讲单词")
     assert "英语话术示例" in ctx
     assert "apple" in ctx.lower() or "词汇" in ctx
-    assert "混合运算" not in ctx.split("话术示例")[0]
+    assert "两步四则运算" not in ctx.split("话术示例")[0]
 
 
 def test_grader_apostrophe_and_punctuation_fuzzy() -> None:

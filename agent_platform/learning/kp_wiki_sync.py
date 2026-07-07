@@ -53,6 +53,20 @@ def _kp_description_map(draft: KpDocumentDraft) -> dict[str, str]:
     return out
 
 
+def extract_description_from_raw_markdown(body: str) -> str:
+    """Parse ## 讲解要点 section from a KP raw wiki file."""
+    marker = "## 讲解要点"
+    if marker not in body:
+        return ""
+    rest = body.split(marker, 1)[1].lstrip("\n")
+    lines: list[str] = []
+    for line in rest.splitlines():
+        if line.startswith("## "):
+            break
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
 def render_kp_wiki_markdown(
     *,
     kp: KnowledgePointDef,
@@ -300,17 +314,54 @@ class KpWikiSyncService:
                 "error": f"knowledge_point_id not in catalog: {knowledge_point_id}",
             }
         unit, kp = found
-        query = WikiQueryRequest(query=knowledge_point_id, limit=3)
-        wiki_result = self._wiki.query(query)
-        hits = [
-            {
-                "path": h.path,
-                "title": h.title,
-                "summary": h.summary,
-            }
-            for h in wiki_result.hits
-        ]
-        has_wiki = bool(hits) or bool(wiki_result.answer)
+        raw_path = self.raw_path_for_kp(kp.knowledge_point_id)
+        description_text = ""
+        source = "none"
+        if raw_path.is_file():
+            description_text = extract_description_from_raw_markdown(
+                raw_path.read_text(encoding="utf-8")
+            )
+            if description_text:
+                source = "raw"
+
+        hits: list[dict] = []
+        wiki_answer = ""
+        if description_text:
+            has_wiki = True
+            wiki_answer = description_text
+            hits.append(
+                {
+                    "path": raw_path.relative_to(self._layout.root).as_posix(),
+                    "title": kp.title,
+                    "summary": description_text[:240],
+                }
+            )
+        else:
+            query = WikiQueryRequest(query=knowledge_point_id, limit=3)
+            wiki_result = self._wiki.query(query)
+            hits = [
+                {
+                    "path": h.path,
+                    "title": h.title,
+                    "summary": h.summary,
+                }
+                for h in wiki_result.hits
+                if knowledge_point_id in (h.summary or "") or knowledge_point_id in h.path
+            ]
+            if not hits:
+                hits = [
+                    {
+                        "path": h.path,
+                        "title": h.title,
+                        "summary": h.summary,
+                    }
+                    for h in wiki_result.hits[:1]
+                ]
+            has_wiki = bool(hits) or bool(wiki_result.answer)
+            wiki_answer = wiki_result.answer or ""
+            if has_wiki and not description_text:
+                source = "search"
+
         return {
             "success": True,
             "knowledge_point_id": kp.knowledge_point_id,
@@ -319,9 +370,11 @@ class KpWikiSyncService:
             "unit_title": unit.unit_title,
             "subject": unit.subject,
             "grade": unit.grade,
-            "has_wiki": has_wiki,
+            "has_wiki": bool(description_text) or has_wiki,
+            "description_text": description_text,
+            "source": source,
             "wiki_hits": hits,
-            "wiki_answer": wiki_result.answer,
+            "wiki_answer": wiki_answer,
             "teaching_note": (
                 "有 Wiki 讲解要点时，请据此分步讲解；"
                 "若无 Wiki，诚实说明教案尚在补充，结合标题与单元上下文讲解，勿假装教材原文。"

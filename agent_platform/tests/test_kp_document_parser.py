@@ -95,13 +95,13 @@ def test_parse_questions_only_unit() -> None:
 教材版本: test
 ---
 
-# 单元：混合运算
-unit_id: math-g3-mixed-ops
+# 单元：两步四则运算
+unit_id: math-g3-u01
 
 ## 练习题
 
 - 计算：6 + 3 × 4 = ? → q-g3m-t-001
-  知识点: kp-g3-mix-mult-add
+  知识点: kp-math-g3-u01-mult-add
   答案: 18
   解析: 先乘后加
   错因: PROCEDURE_ERROR
@@ -145,10 +145,10 @@ def test_parse_family_alpha_full_sample() -> None:
     draft = parse_kp_document(FULL_SAMPLE)
     assert draft.subject == "数学"
     assert draft.grade == 3
-    assert draft.units[0].unit_id == "math-g3-mixed-ops"
+    assert draft.units[0].unit_id == "math-g3-u01"
     assert draft.knowledge_point_count == 8
     assert draft.question_count == 4
-    kp = next(k for k in draft.units[0].knowledge_points if k.knowledge_point_id == "kp-g3-mix-mult-add")
+    kp = next(k for k in draft.units[0].knowledge_points if k.knowledge_point_id == "kp-math-g3-u01-mult-add")
     assert kp.description and "先算乘法" in kp.description
     q = draft.units[0].questions[0]
     assert q.default_error_code == "PROCEDURE_ERROR"

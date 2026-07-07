@@ -22,13 +22,13 @@ def _questions_text() -> str:
 教材版本: test
 ---
 
-# 单元：混合运算
-unit_id: math-g3-mixed-ops
+# 单元：两步四则运算
+unit_id: math-g3-u01
 
 ## 练习题
 
 - 计算：6 + 3 × 4 = ? → q-ingest-001
-  知识点: kp-g3-mix-mult-add
+  知识点: kp-math-g3-u01-mult-add
   答案: 18
   解析: 先乘后加
   错因: PROCEDURE_ERROR
@@ -56,7 +56,7 @@ def test_validate_unknown_kp_fails(tmp_path: Path) -> None:
     )
     catalog = KpCatalogService(catalog_path=cat_path)
     draft = parse_kp_document_text(
-        _questions_text().replace("kp-g3-mix-mult-add", "kp-does-not-exist")
+        _questions_text().replace("kp-math-g3-u01-mult-add", "kp-does-not-exist")
     )
     result = validate_draft_questions(draft, catalog=catalog)
     assert result.ok is False

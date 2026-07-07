@@ -45,6 +45,7 @@ from agent_platform.learning.profile_onboarding import (
     maybe_advance_from_onboarding,
     snapshot_for_student,
 )
+from agent_platform.learning.student_reply import sanitize_student_reply
 from agent_platform.memory.assistant_identity import DEFAULT_ASSISTANT_NAME
 
 from agent_platform.perception.vision_session import VisionSessionStore
@@ -61,6 +62,7 @@ _OCR_PROMPT = (
 
 _TEMPLATES = Path(__file__).parent / "templates"
 _CHAT_HTML = (_TEMPLATES / "student_chat.html").read_text(encoding="utf-8")
+_SPEECH_DIAG_HTML = (_TEMPLATES / "speech_diag.html").read_text(encoding="utf-8")
 
 _EMOJI_RE = re.compile(
     "[" "\U0001f300-\U0001faff" "\U00002600-\U000027bf" "\U0001f1e6-\U0001f1ff" "\u2640-\u2642" "]+",
@@ -170,6 +172,11 @@ def create_app(
     def chat_page() -> str:
         return _CHAT_HTML
 
+    @app.get("/speech-diag", response_class=HTMLResponse)
+    def speech_diag_page() -> str:
+        """浏览器 Web Speech API 诊断页（不经过服务端 ASR）。"""
+        return _SPEECH_DIAG_HTML
+
     def _default_student_id() -> str:
         from agent_platform.learning._config import load_student_learning_config
 
@@ -226,7 +233,7 @@ def create_app(
         except Exception:
             pass
         return ChatOut(
-            reply=reply.text,
+            reply=sanitize_student_reply(reply.text),
             session_id=reply.session_id,
             elapsed_ms=reply.elapsed_ms,
         )
@@ -247,6 +254,7 @@ def create_app(
             env_extra[VISION_ID_ENV] = body.vision_id
 
         def event_gen():
+            accumulated: list[str] = []
             try:
                 for ev in _bridge.stream_ask(
                     body.message,
@@ -254,14 +262,17 @@ def create_app(
                     env_extra=env_extra or None,
                 ):
                     if ev.text_delta:
+                        accumulated.append(ev.text_delta)
                         payload = {"delta": ev.text_delta}
                         yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
                     if ev.done:
+                        full = "".join(accumulated)
                         payload = {
                             "done": True,
                             "session_id": ev.session_id,
                             "elapsed_ms": ev.elapsed_ms,
                             "error": ev.error,
+                            "reply": sanitize_student_reply(full) if full else "",
                         }
                         yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
             except HermesCancelledError:
