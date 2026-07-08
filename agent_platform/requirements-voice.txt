@@ -18,6 +18,7 @@ torchaudio>=2.0
 # D3–D4
 faster-whisper>=1.0.0
 funasr>=1.1.0
+dashscope>=1.20.0
 modelscope>=1.15.0
 openwakeword>=0.6.0
 onnxruntime>=1.16.0

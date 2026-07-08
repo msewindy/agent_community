@@ -573,6 +573,33 @@ def pre_llm_student_context_hook(**kwargs: Any) -> dict[str, str] | None:
             onboarding_guidance=onboarding_block,
             assistant_name=assistant,
         )
+        from agent_platform.learning.scene_behavior import student_behavior_prompt_block
+
+        block += "\n\n" + student_behavior_prompt_block()
+
+        grade_level = ctx.curriculum.grade_level
+        if grade_level is None:
+            from agent_platform.learning.kp_catalog import get_kp_catalog_service
+
+            grade_level = get_kp_catalog_service().resolve_grade_level(ctx.curriculum.grade)
+        if user_msg:
+            from agent_platform.learning.grade_boundary import check_grade_boundary_message
+
+            grade_block = check_grade_boundary_message(
+                user_msg,
+                student_grade_level=int(grade_level),
+                current_subject=ctx.curriculum.subject,
+            )
+            if grade_block:
+                block += "\n\n" + grade_block
+
+        from agent_platform.learning.teach_preflight import TEACH_PREFLIGHT_ENV, pop_teach_preflight_from_env
+
+        preflight = pop_teach_preflight_from_env()
+        if not preflight:
+            preflight = (os.environ.get(TEACH_PREFLIGHT_ENV) or "").strip()
+        if preflight:
+            block += "\n\n" + preflight
         try:
             from agent_platform.perception.vision_session import VisionSessionStore
             from agent_platform.perception.vision_understand import format_vision_pre_llm_block

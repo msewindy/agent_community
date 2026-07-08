@@ -46,11 +46,13 @@ from agent_platform.learning.profile_onboarding import (
     snapshot_for_student,
 )
 from agent_platform.learning.student_reply import sanitize_student_reply
+from agent_platform.learning.teach_preflight import run_teach_preflight, set_teach_preflight_env
 from agent_platform.memory.assistant_identity import DEFAULT_ASSISTANT_NAME
 
 from agent_platform.perception.vision_session import VisionSessionStore
 from agent_platform.perception.vision_understand import understand_image
 from agent_platform.voice._config import load_voice_config
+from agent_platform.voice.dashscope_asr import AsrError, transcribe_upload
 from agent_platform.voice.hermes_bridge import HermesBridge, HermesCancelledError
 from agent_platform.voice.tts import synthesize_to_file_sync
 
@@ -61,8 +63,17 @@ _OCR_PROMPT = (
 )
 
 _TEMPLATES = Path(__file__).parent / "templates"
-_CHAT_HTML = (_TEMPLATES / "student_chat.html").read_text(encoding="utf-8")
-_SPEECH_DIAG_HTML = (_TEMPLATES / "speech_diag.html").read_text(encoding="utf-8")
+_CHAT_HTML_PATH = _TEMPLATES / "student_chat.html"
+_SPEECH_DIAG_HTML_PATH = _TEMPLATES / "speech_diag.html"
+
+
+def _load_chat_html() -> str:
+    """每次请求读盘，改模板后无需重启 8771。"""
+    return _CHAT_HTML_PATH.read_text(encoding="utf-8")
+
+
+def _load_speech_diag_html() -> str:
+    return _SPEECH_DIAG_HTML_PATH.read_text(encoding="utf-8")
 
 _EMOJI_RE = re.compile(
     "[" "\U0001f300-\U0001faff" "\U00002600-\U000027bf" "\U0001f1e6-\U0001f1ff" "\u2640-\u2642" "]+",
@@ -132,6 +143,29 @@ def _vision_out(record) -> VisionUnderstandOut:
     )
 
 
+class AsrOut(BaseModel):
+    text: str
+    provider: str = "dashscope"
+
+
+def _build_chat_env_extra(
+    *,
+    message: str,
+    vision_id: Optional[str],
+    student_id: str,
+    vision_store: VisionSessionStore,
+) -> dict[str, str] | None:
+    env_extra: dict[str, str] = {}
+    if vision_id:
+        rec = vision_store.get(vision_id)
+        if rec is None:
+            raise HTTPException(status_code=404, detail=f"vision 已过期或不存在: {vision_id}")
+        env_extra[VISION_ID_ENV] = vision_id
+    preflight = run_teach_preflight(student_id, message)
+    set_teach_preflight_env(preflight, env_extra)
+    return env_extra or None
+
+
 def create_app(
     config: Optional[dict] = None,
     bridge: Optional[HermesBridge] = None,
@@ -166,16 +200,26 @@ def create_app(
 
     @app.get("/health")
     def health() -> dict:
-        return {"status": "ok", "bootstrap": _bootstrap.to_dict()}
+        import shutil
+
+        has_key = bool(os.environ.get("DASHSCOPE_API_KEY"))
+        return {
+            "status": "ok",
+            "bootstrap": _bootstrap.to_dict(),
+            "asr": {
+                "dashscope_key": has_key,
+                "ffmpeg": shutil.which("ffmpeg") is not None,
+            },
+        }
 
     @app.get("/", response_class=HTMLResponse)
     def chat_page() -> str:
-        return _CHAT_HTML
+        return _load_chat_html()
 
     @app.get("/speech-diag", response_class=HTMLResponse)
     def speech_diag_page() -> str:
         """浏览器 Web Speech API 诊断页（不经过服务端 ASR）。"""
-        return _SPEECH_DIAG_HTML
+        return _load_speech_diag_html()
 
     def _default_student_id() -> str:
         from agent_platform.learning._config import load_student_learning_config
@@ -192,11 +236,24 @@ def create_app(
         from agent_platform.learning.student_context import StudentContextService
 
         stage = "unknown"
+        grade_label = ""
+        subject = ""
+        unit_title = ""
         try:
             ctx = StudentContextService().get(sid)
             stage = ctx.pipeline_stage.value
+            grade_label = ctx.curriculum.grade or ""
+            subject = ctx.curriculum.subject or ""
+            unit_title = ctx.curriculum.unit_title or ""
         except FileNotFoundError:
             pass
+        display = snap.display_name or "同学"
+        context_line = ""
+        if grade_label and unit_title:
+            subj = f"{subject} · " if subject else ""
+            context_line = f"{display} · {grade_label} · {subj}{unit_title}"
+        elif grade_label:
+            context_line = f"{display} · {grade_label}"
         return {
             "student_id": sid,
             "message": build_welcome_message(snap, assistant_name=assistant),
@@ -206,21 +263,29 @@ def create_app(
             "missing": snap.missing,
             "display_name": snap.display_name,
             "pipeline_stage": stage,
+            "grade_label": grade_label,
+            "subject": subject,
+            "unit_title": unit_title,
+            "learning_context_line": context_line,
         }
 
     @app.post("/api/chat", response_model=ChatOut)
     def chat(body: ChatIn) -> ChatOut:
-        env_extra: dict[str, str] = {}
-        if body.vision_id:
-            rec = _vision_store.get(body.vision_id)
-            if rec is None:
-                raise HTTPException(status_code=404, detail=f"vision 已过期或不存在: {body.vision_id}")
-            env_extra[VISION_ID_ENV] = body.vision_id
+        sid = _default_student_id()
+        try:
+            env_extra = _build_chat_env_extra(
+                message=body.message,
+                vision_id=body.vision_id,
+                student_id=sid,
+                vision_store=_vision_store,
+            )
+        except HTTPException:
+            raise
         try:
             reply = _bridge.ask(
                 body.message,
                 session_id=body.session_id,
-                env_extra=env_extra or None,
+                env_extra=env_extra,
             )
         except HermesCancelledError:
             raise HTTPException(status_code=499, detail="cancelled") from None
@@ -243,15 +308,16 @@ def create_app(
         """SSE：轮询 hermes 输出文件，逐段推送回复文本。"""
         import json
 
-        env_extra: dict[str, str] = {}
-        if body.vision_id:
-            rec = _vision_store.get(body.vision_id)
-            if rec is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"vision 已过期或不存在: {body.vision_id}",
-                )
-            env_extra[VISION_ID_ENV] = body.vision_id
+        sid = _default_student_id()
+        try:
+            env_extra = _build_chat_env_extra(
+                message=body.message,
+                vision_id=body.vision_id,
+                student_id=sid,
+                vision_store=_vision_store,
+            )
+        except HTTPException:
+            raise
 
         def event_gen():
             accumulated: list[str] = []
@@ -259,7 +325,7 @@ def create_app(
                 for ev in _bridge.stream_ask(
                     body.message,
                     session_id=body.session_id,
-                    env_extra=env_extra or None,
+                    env_extra=env_extra,
                 ):
                     if ev.text_delta:
                         accumulated.append(ev.text_delta)
@@ -292,6 +358,22 @@ def create_app(
     def chat_abort() -> dict[str, bool]:
         """中止进行中的 hermes 子进程，供前端「停止」按钮调用。"""
         return {"cancelled": _bridge.cancel()}
+
+    @app.post("/api/asr", response_model=AsrOut)
+    async def asr(audio: UploadFile = File(...)) -> AsrOut:
+        """服务端语音识别（DashScope Paraformer），供 🎤 录音上传。"""
+        raw = await audio.read()
+        try:
+            text = transcribe_upload(
+                raw,
+                filename=audio.filename or "voice.webm",
+                content_type=audio.content_type or "",
+            )
+        except AsrError as e:
+            raise HTTPException(status_code=502, detail=str(e)) from e
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"asr failed: {e}") from e
+        return AsrOut(text=text)
 
     @app.post("/api/tts")
     def tts(body: TtsIn) -> Response:

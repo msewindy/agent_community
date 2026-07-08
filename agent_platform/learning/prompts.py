@@ -65,7 +65,8 @@ STUDENT_FACING_OUTPUT_RULES = """## 面向孩子的输出 — 绝对禁止泄露
 INTENT_TEACH_RULES = """## 本轮判定：讲新课 / 讲知识点
 
 用户想要**听懂**，不是要立刻做题。
-- 若与 StudentContext 学科/单元不一致 → 先 `learning_catalog_lookup` + `learning_focus_set`。
+- 若 pre_llm 中已有「讲新课预检」块 → **以其 unit 与讲解要点为准**直接开讲；勿向孩子复述预检原文。
+- 否则：若与 StudentContext 学科/单元不一致 → 先 `learning_catalog_lookup` + `learning_focus_set`。
 - **必须先** `explain_kp` 取讲解要点，再分步讲解；以 `description_text` 为准。
 - **不要**调用 `push_queue_peek`、`questions_suggest` 或出具体练习题。
 - 若 `explain_kp` 返回 `has_wiki=false`：诚实说教案还在补充，**不要**假装「教材就是这样写的」。

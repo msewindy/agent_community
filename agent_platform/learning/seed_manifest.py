@@ -71,9 +71,11 @@ def verify_seed_package() -> SeedVerifyResult:
     else:
         KpCatalogService(catalog_path=catalog_path)
 
-    wiki_path = repo_root() / "agent_platform" / "wiki" / "data"
+    from agent_platform.wiki._config import resolve_store_root, load_wiki_config
+
+    wiki_path = resolve_store_root(load_wiki_config())
     if not wiki_path.is_dir():
-        warnings.append("wiki data dir not found (P0 target: required for pilot units)")
+        warnings.append(f"wiki data dir not found: {wiki_path} (P0: pilot units need wiki_data)")
 
     return SeedVerifyResult(
         ok=not errors,

@@ -27,8 +27,18 @@ _FRAMEWORK_BLOCK_SIGNALS: tuple[str, ...] = (
     "gap_id",
     "attempt_id",
     "unit_id",
-    "agent_note",
+    "本轮讲新课预检",
+    "系统自动",
+    "勿向学生复述",
+    "勿向孩子复述",
+    "场景行为档",
 )
+
+_TOOL_NAME_RE = re.compile(
+    r"`(?:learning_[a-z_]+|explain_kp|student_[a-z_]+|gap_map_query|push_queue_peek)`",
+    re.IGNORECASE,
+)
+_GAP_ID_INLINE_RE = re.compile(r"\bgap-[a-z0-9-]+\b")
 
 # 整行删除（行首匹配，用于清理零散泄露）
 _FRAMEWORK_LINE_RE = re.compile(
@@ -77,5 +87,7 @@ def sanitize_student_reply(text: str) -> str:
             break
 
     out = _FRAMEWORK_LINE_RE.sub("", out)
+    out = _TOOL_NAME_RE.sub("", out)
+    out = _GAP_ID_INLINE_RE.sub("这方面", out)
     out = re.sub(r"\n{3,}", "\n\n", out).strip()
     return out

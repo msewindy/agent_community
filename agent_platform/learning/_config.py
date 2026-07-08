@@ -23,6 +23,9 @@ def load_student_learning_config() -> dict:
 
 
 def resolve_data_root(cfg: dict | None = None) -> Path:
+    env = os.environ.get("STUDENT_JARVIS_DATA_ROOT", "").strip()
+    if env:
+        return Path(env).resolve()
     cfg = cfg or load_student_learning_config()
     raw = (cfg.get("data") or {}).get("root", "student_data")
     p = Path(str(raw))
