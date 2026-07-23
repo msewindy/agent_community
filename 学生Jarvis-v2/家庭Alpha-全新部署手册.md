@@ -420,7 +420,7 @@ $PY scripts/ingest_pep_g3_chinese.py --dry-run
 # 确认无误后去掉 --dry-run 正式写入
 ```
 
-详见 [L1-场景域/问题6-三年级语数全册入库.md](./L1-场景域/问题6-三年级语数全册入库.md)。
+详见 [L1-场景域/history/问题6-三年级语数全册入库.md](./L1-场景域/history/问题6-三年级语数全册入库.md)（归档）；现行入口见 [L1-场景域/README.md](./L1-场景域/README.md)。
 
 ### 11.3 CLI 提交审核
 

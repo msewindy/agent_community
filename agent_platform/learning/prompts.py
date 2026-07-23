@@ -26,7 +26,7 @@ _STUDENT_JARVIS_SYSTEM_TEMPLATE = """## 角色 — {assistant_name}
 | 孩子意图 | 你该做什么 | **禁止** |
 |----------|------------|----------|
 | **讲新课 / 讲知识点**（「讲讲」「什么是」「学这一单元」「介绍」） | 若学科/单元与 StudentContext 不一致 → 先 `learning_catalog_lookup` + `learning_focus_set`；再 `explain_kp` 分步讲解 | **禁止**未对齐单元就编造教材内容；**禁止**此时出题 |
-| **要练题 / 考考我**（「出题」「练几题」「来几道」） | 若孩子口头换了学科/单元 → 先 `learning_focus_set`；再 `questions_suggest` → `question_get` → `attempt_submit` | **禁止**盲目 `push_queue_peek` |
+| **要练题 / 考考我**（「出题」「练几题」「来几道」） | 若孩子口头换了学科/单元 → 先 `learning_focus_set`；再 `questions_suggest` → `question_get` → `attempt_submit` | **禁止**盲目 `push_queue_peek`；**禁止**自编题+口头判分绕过工具 |
 | **补某一薄弱点**（「退位还不会」「再练练进位」「单词拼写」） | `gap_map_query` 确认 → `questions_suggest(focus=remediation, knowledge_point_id=…)` | 不要拿与请求无关的旧队列题 |
 | **拍卷 / 记错题** | 按 Vision 上下文与意图：`classify_photo` 或讲解 | 讲解意图下不要整页 classify |
 
@@ -75,10 +75,20 @@ INTENT_TEACH_RULES = """## 本轮判定：讲新课 / 讲知识点
 
 INTENT_PRACTICE_RULES = """## 本轮判定：要练题 / 做题
 
-- 若孩子口头换了学科/单元 → 先 `learning_focus_set`。
-- 用 `questions_suggest` 按**当前持久单元**实时选题；再用 `question_get` 取题面。
-- **不要**用 `push_queue_peek`。
-- 孩子答完后用 `attempt_submit` 记学情。"""
+**硬规则（违反即错误）：**
+1. 本轮**必须先**调用 `questions_suggest`；有题再 `question_get` 出示题面（可一次 1 题）。
+2. **禁止**自己编造题目、选项或标准答案，并口头说「对了/错了」。
+3. 孩子作答后**必须**调用 `attempt_submit(question_id=…, answer=…)` 记学情；禁止只口头批改。
+4. 若 `questions_suggest` 返回 `count=0` / `empty_bank=true`：用孩子能懂的话说明「这单元练习题还在准备」，并给替代（换有题的单元 / 拍照作业 / 请家长补题）；**禁止**假装考完。
+5. 若孩子口头换了学科/单元 → 先 `learning_focus_set`，再 suggest。
+6. **不要**用 `push_queue_peek`。"""
+
+INTENT_ANSWER_FOLLOWUP_RULES = """## 本轮判定：孩子可能在作答上一道练习题
+
+- 若上一题来自 `question_get`（有 `question_id`）：本轮**必须**调用 `attempt_submit` 写入学情。
+- **禁止**只回复「对了」「错了」「真棒」而不落库。
+- 若你并不清楚 question_id（例如之前误用了口头出题）：本轮先 `questions_suggest` 重新走题库，或诚实说明刚才那题没记入学情、我们用题库再练一题。
+- 无题号的真实作业题才用 `attempt_submit_freeform`；普通「考考我」不要用 freeform 代替题库。"""
 
 ANSWER_GATE_RULES = """## AnswerGate — 回答前自检（助手输出）
 
@@ -155,6 +165,19 @@ _PRACTICE_PATTERNS = (
     r"给我.*题",
 )
 
+_ANSWER_FOLLOWUP_PATTERNS = (
+    r"答案是",
+    r"我选",
+    r"选[ABCDEF]",
+    r"第[一二三四五六七八九十\d]+题",
+    r"^[ABCDEF]\b",
+    r"^\d+\s*[ABCDEF]",
+    r"等于\s*\d",
+    r"我觉得是",
+    r"应该是",
+    r"我的答案",
+)
+
 
 def build_student_system_prompt(subject: str, *, assistant_name: str = "贾维斯") -> str:
     hint = _SUBJECT_TEACHING_HINTS.get(subject.strip(), "按 StudentContext 当前学科与单元讲解，不要跑题。")
@@ -186,6 +209,34 @@ def detect_practice_intent(message: str) -> bool:
     if not text:
         return False
     return any(re.search(p, text) for p in _PRACTICE_PATTERNS)
+
+
+def detect_answer_followup_intent(message: str) -> bool:
+    text = (message or "").strip()
+    if not text:
+        return False
+    if detect_practice_intent(text) or detect_teach_intent(text):
+        return False
+    return any(re.search(p, text, flags=re.IGNORECASE) for p in _ANSWER_FOLLOWUP_PATTERNS)
+
+
+def practice_bank_status_block(*, unit_id: str, question_count: int) -> str:
+    """Injected by pre_llm when practice intent is detected."""
+    uid = (unit_id or "").strip() or "（当前单元）"
+    if question_count <= 0:
+        return (
+            "## 题库状态（系统注入）\n"
+            f"当前单元 `{uid}` 可判分题数量：**0**。\n"
+            "必须先调用 `questions_suggest` 确认；若 count=0："
+            "**禁止自编题假装考完**；诚实告诉孩子练习题还在准备，"
+            "可建议换数学第一单元 / 拍照作业 / 请家长补题。"
+        )
+    return (
+        "## 题库状态（系统注入）\n"
+        f"当前单元 `{uid}` 可判分题约 **{question_count}** 道。\n"
+        "练题必须走 `questions_suggest` → `question_get` → `attempt_submit`；"
+        "**禁止**口头出题判分。"
+    )
 
 
 _GUIDING_FALLBACK = (
@@ -247,6 +298,7 @@ def format_pre_llm_context(
 
     teach = detect_teach_intent(user_message)
     practice = detect_practice_intent(user_message)
+    answer_followup = detect_answer_followup_intent(user_message)
     if onboarding_guidance:
         parts.append(onboarding_guidance)
         if teach or practice:
@@ -261,6 +313,8 @@ def format_pre_llm_context(
     elif practice:
         parts.append(LEARNING_FOCUS_RULES)
         parts.append(INTENT_PRACTICE_RULES)
+    elif answer_followup:
+        parts.append(INTENT_ANSWER_FOLLOWUP_RULES)
 
     parts.append(prompt_block)
     parts.append(format_gaps_summary(gaps, background_only=teach and not onboarding_guidance))

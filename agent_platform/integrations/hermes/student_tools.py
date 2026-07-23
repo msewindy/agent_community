@@ -408,6 +408,13 @@ def questions_suggest(args: dict, **kwargs) -> str:
                 "focus": focus,
                 "knowledge_point_id": kp_id,
                 "count": len(questions),
+                "empty_bank": len(questions) == 0,
+                "agent_instruction": (
+                    "当前单元没有可推的练习题。请用口语告诉孩子练习题还在准备，"
+                    "并建议换有题的单元 / 拍照作业 / 请家长补题；禁止自编题假装考完。"
+                    if not questions
+                    else "请用 question_get 取题面出题；孩子答完后必须 attempt_submit。"
+                ),
                 "questions": [
                     {
                         "question_id": q.question_id,
@@ -573,6 +580,16 @@ def pre_llm_student_context_hook(**kwargs: Any) -> dict[str, str] | None:
             onboarding_guidance=onboarding_block,
             assistant_name=assistant,
         )
+        from agent_platform.learning.prompts import detect_practice_intent, practice_bank_status_block
+
+        if detect_practice_intent(user_msg):
+            unit_id = (ctx.curriculum.unit_id or "").strip()
+            try:
+                qcount = len(_get_bank_svc().list_questions(unit_id=unit_id)) if unit_id else 0
+            except Exception:  # noqa: BLE001
+                qcount = 0
+            block += "\n\n" + practice_bank_status_block(unit_id=unit_id, question_count=qcount)
+
         from agent_platform.learning.scene_behavior import student_behavior_prompt_block
 
         block += "\n\n" + student_behavior_prompt_block()

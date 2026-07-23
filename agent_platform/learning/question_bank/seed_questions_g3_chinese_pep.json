@@ -2,5 +2,128 @@
   "schema_version": "1.0.0",
   "subject": "语文",
   "grade": 3,
-  "questions": []
+  "unit_id": "chinese-g3-u01",
+  "unit_title": "美丽的校园",
+  "questions": [
+    {
+      "question_id": "q-zh-g3-u01-001",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-vocab",
+      "stem": "「美丽的校园」里，「美丽」的近义词可以是？（填一个：漂亮 / 丑陋 / 嘈杂）",
+      "answer_type": "exact",
+      "expected_answer": "漂亮",
+      "explanation": "「美丽」与「漂亮」意思接近；丑陋、嘈杂不符合。",
+      "default_error_code": "VOCAB_GAP"
+    },
+    {
+      "question_id": "q-zh-g3-u01-002",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-vocab",
+      "stem": "把词语补充完整：绿____的草地（填一个字）",
+      "answer_type": "exact",
+      "expected_answer": "油",
+      "explanation": "常见搭配是「绿油油的草地」。",
+      "default_error_code": "VOCAB_GAP"
+    },
+    {
+      "question_id": "q-zh-g3-u01-003",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-vocab",
+      "stem": "「校园」一词指的是？（填：学校的院子和场地 / 家里的客厅 / 菜市场）",
+      "answer_type": "exact",
+      "expected_answer": "学校的院子和场地",
+      "explanation": "校园指学校范围内的场地环境。",
+      "default_error_code": "VOCAB_GAP"
+    },
+    {
+      "question_id": "q-zh-g3-u01-004",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-char",
+      "stem": "「花」字一共有几画？（填数字）",
+      "answer_type": "exact",
+      "expected_answer": "7",
+      "explanation": "「花」字共 7 画。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-005",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-char",
+      "stem": "「校」字的偏旁是？（填：木字旁 / 草字头 / 三点水）",
+      "answer_type": "exact",
+      "expected_answer": "木字旁",
+      "explanation": "「校」左边是木字旁。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-006",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-reading",
+      "stem": "短文：校园里有高大的树，也有鲜红的花。问：短文写了校园里的什么？（填：树和花 / 汽车 / 河流）",
+      "answer_type": "exact",
+      "expected_answer": "树和花",
+      "explanation": "文中直接写到树和花。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-007",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-reading",
+      "stem": "「同学们在操场上跑步。」这句话主要写谁在做什么？（填：同学们跑步 / 老师讲课 / 家长开车）",
+      "answer_type": "exact",
+      "expected_answer": "同学们跑步",
+      "explanation": "主语是同学们，动作是跑步。",
+      "default_error_code": "READING_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-008",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-garden",
+      "stem": "「今天天气真好」句末应填什么标点？（填符号）",
+      "answer_type": "exact",
+      "expected_answer": "。",
+      "explanation": "陈述句句末用句号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-009",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-garden",
+      "stem": "「校园里的花真美啊」句末更合适的标点是？（填：！ / 。 / ，）",
+      "answer_type": "exact",
+      "expected_answer": "！",
+      "explanation": "带感叹语气，句末常用感叹号。",
+      "default_error_code": "PUNCTUATION_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-010",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-oral",
+      "stem": "向同学介绍校园，开头比较有礼貌的一句是？（填：大家好，我来介绍我们的校园 / 你们别吵 / 我不想说）",
+      "answer_type": "exact",
+      "expected_answer": "大家好，我来介绍我们的校园",
+      "explanation": "口语交际要有礼貌的开场。",
+      "default_error_code": "EXPRESSION_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-011",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-writing",
+      "stem": "写校园时，下面哪一类更适合当具体描写？（填：写出看到的花草树木 / 只写「很好」两个字 / 抄天气预报）",
+      "answer_type": "exact",
+      "expected_answer": "写出看到的花草树木",
+      "explanation": "习作要有具体内容，避免空话。",
+      "default_error_code": "EXPRESSION_ERROR"
+    },
+    {
+      "question_id": "q-zh-g3-u01-012",
+      "unit_id": "chinese-g3-u01",
+      "knowledge_point_id": "kp-zh-g3-u01-vocab",
+      "stem": "「安静」的反义词更接近哪一个？（填：热闹 / 干净 / 缓慢）",
+      "answer_type": "exact",
+      "expected_answer": "热闹",
+      "explanation": "安静与热闹相对。",
+      "default_error_code": "VOCAB_GAP"
+    }
+  ]
 }

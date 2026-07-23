@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>教育过程建模与教育 Agent 功能 · 研讨稿</title>
+  <style>
+    :root {
+      --ink: #1c1917;
+      --muted: #57534e;
+      --line: #e7e5e4;
+      --bg: #f5f2eb;
+      --card: #fffcf7;
+      --accent: #1d4e4a;
+      --accent-2: #3d6b4f;
+      --warm: #9a3412;
+      --soft: #e8f0ee;
+      --soft-warm: #faf1e8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 0%, #e8efe9 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 10%, #f3e9dc 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.7;
+      font-size: 17px;
+    }
+    .sans { font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 48px 28px 96px; }
+    header.hero {
+      padding: 8px 0 36px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 36px;
+    }
+    header.hero .eyebrow {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 14px;
+      font-weight: 600;
+    }
+    header.hero h1 {
+      margin: 0 0 16px;
+      font-size: 2.05rem;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+    header.hero .lead {
+      margin: 0;
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 36em;
+    }
+    header.hero .meta {
+      margin-top: 20px;
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    nav.toc {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+    }
+    nav.toc h2 {
+      margin: 0 0 12px;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+    nav.toc ol { margin: 0; padding-left: 1.25em; }
+    nav.toc li { margin-bottom: 4px; }
+    nav.toc a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    nav.toc a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+    section {
+      margin-bottom: 44px;
+      padding-bottom: 8px;
+    }
+    section > h2 {
+      font-size: 1.45rem;
+      margin: 0 0 16px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    section h3 {
+      font-size: 1.12rem;
+      margin: 28px 0 10px;
+      color: var(--warm);
+      font-weight: 700;
+    }
+    section h4 {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 0.95rem;
+      margin: 20px 0 8px;
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+    p { margin: 0 0 14px; }
+    ul, ol { margin: 0 0 14px; padding-left: 1.35em; }
+    li { margin-bottom: 7px; }
+    .principle {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--soft);
+      border-left: 3px solid var(--accent);
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.95rem;
+    }
+    .principle strong { color: var(--accent); }
+    .note {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--soft-warm);
+      border-left: 3px solid var(--warm);
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.92rem;
+      color: #44403c;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 0.9rem;
+      margin: 14px 0 18px;
+      background: var(--card);
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #eef4f2;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .def-grid {
+      display: grid;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .def {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 14px 16px;
+    }
+    .def .name {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+      font-size: 0.98rem;
+    }
+    .def .one {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .def .why {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .flow-block {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      border: 1px solid var(--line);
+      background: var(--card);
+      padding: 16px 18px;
+      margin: 12px 0 18px;
+      border-radius: 4px;
+    }
+    .flow-block .title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+    }
+    .flow-block ol { margin-bottom: 0; }
+    .layers {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      display: grid;
+      gap: 0;
+      margin: 18px 0;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .layer-row {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      border-bottom: 1px solid var(--line);
+    }
+    .layer-row:last-child { border-bottom: 0; }
+    .layer-row .l {
+      background: var(--accent);
+      color: #fff;
+      padding: 16px 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .layer-row:nth-child(2) .l { background: #265e58; }
+    .layer-row:nth-child(3) .l { background: #3d6b4f; }
+    .layer-row:nth-child(4) .l { background: #6b4f3d; }
+    .layer-row .r { padding: 14px 16px; font-size: 0.92rem; }
+    .agent-card {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      border: 1px solid var(--line);
+      background: var(--card);
+      padding: 16px 18px;
+      margin: 0 0 12px;
+      border-radius: 4px;
+    }
+    .agent-card h4 {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 1rem;
+    }
+    .agent-card .cap {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+      .layer-row { grid-template-columns: 1fr; }
+      .layer-row .l { justify-content: flex-start; padding: 10px 14px; }
+    }
+    .two-col .box {
+      border: 1px solid var(--line);
+      background: var(--card);
+      padding: 14px 16px;
+      border-radius: 4px;
+    }
+    .two-col .box h4 { margin-top: 0; }
+    .two-col .box.yes { border-top: 3px solid var(--accent-2); }
+    .two-col .box.no { border-top: 3px solid #a8a29e; }
+    .q-list {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      list-style: none;
+      padding: 0;
+      counter-reset: dq;
+    }
+    .q-list li {
+      counter-increment: dq;
+      padding: 14px 14px 14px 48px;
+      position: relative;
+      border: 1px solid var(--line);
+      background: var(--card);
+      margin-bottom: 10px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+    .q-list li::before {
+      content: counter(dq);
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .q-list .opt {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    footer {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .print-hint {
+      font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: -20px 0 28px;
+    }
+    @media print {
+      body { background: #fff; font-size: 11pt; }
+      .wrap { padding: 0; max-width: none; }
+      .print-hint { display: none; }
+      section { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow sans">家庭学习场景 · 第一性原理研讨</p>
+      <h1>教育过程建模<br />与教育 Agent 功能</h1>
+      <p class="lead">本文不讨论「我们已经做成了什么」，只讨论两件事：教育过程应如何被建模；在此模型之上，教育 Agent 应具备哪些功能。供家长、老师、教育从业者与产品设计者共同审视。</p>
+      <p class="meta">研讨稿 · 2026-07-19 · 浏览器打开可讨论，亦可打印 / 导出 PDF</p>
+    </header>
+
+    <p class="print-hint">阅读建议：先读第一、二部分对齐「世界长什么样」，再读第三部分看「助手该干什么」，最后用第四部分的问题直接拍板。</p>
+
+    <nav class="toc">
+      <h2>目录</h2>
+      <ol>
+        <li><a href="#p0">出发点：学习何以发生</a></li>
+        <li><a href="#p1">第一部分 · 教育过程建模</a></li>
+        <li><a href="#p2">第二部分 · 从模型到教育 Agent 功能</a></li>
+        <li><a href="#p3">第三部分 · 请一起拍板的问题</a></li>
+      </ol>
+    </nav>
+
+    <!-- ========== 0 ========== -->
+    <section id="p0">
+      <h2>出发点：学习何以发生</h2>
+      <p>无论是否使用人工智能，一次有效的家庭学习，至少要同时回答四个问题：</p>
+      <ol>
+        <li><strong>学什么</strong>——内容的边界是什么（相对教材、年级是否站得住）？</li>
+        <li><strong>怎么学</strong>——听讲、练习、订正、复习，过程如何展开？</li>
+        <li><strong>学得怎样</strong>——进度与掌握如何被看见、如何被纠正？</li>
+        <li><strong>谁负责什么</strong>——学生、家长、老师（教研）各自的权责？</li>
+      </ol>
+      <p>教育 Agent 不是这四个问题本身，而是<strong>帮助上述过程更顺畅发生的智能角色</strong>。若过程模型不清楚，Agent 功能必然漂移：有时像闲聊伙伴，有时像题库机器，有时像成绩单——却无法稳定地「伴学」。</p>
+      <div class="principle">
+        <strong>第一性原理</strong>：先为「学习」建模，再为「助手」列功能。助手的能力必须能映射回过程中的某一步；映射不上的，不做或单列讨论。
+      </div>
+    </section>
+
+    <!-- ========== 1 ========== -->
+    <section id="p1">
+      <h2>第一部分 · 教育过程建模</h2>
+
+      <h3>1.1 我们采纳的建模立场</h3>
+      <p>在已有讨论中，已经提炼出一组核心对象：<strong>学生、家长、知识点、习题、教案（讲解材料）、学情</strong> 等。我们认为这一组对象<strong>方向正确、可以成为正式模型的骨架</strong>，同时需要做三处补强，否则过程会断、概念会糊：</p>
+      <ol>
+        <li>把笼统的「学情」拆成<strong>学习进度</strong>与<strong>掌握判断</strong>（见 1.4）；</li>
+        <li>补上<strong>学习活动</strong>作为过程足迹（听讲、练习、订正等事件）；</li>
+        <li>明确<strong>单元</strong>与<strong>课堂活动</strong>在内容层的位置（教材结构与「不宜自动判分」的活动）。</li>
+      </ol>
+      <div class="note">
+        下文凡称「建议模型」，即指：在你们已提炼概念上完善后的模型。若讨论中要改名，可以改；但同一体系内每个词只能有一个含义。
+      </div>
+
+      <h3>1.2 四层结构</h3>
+      <div class="layers">
+        <div class="layer-row">
+          <div class="l">角色层</div>
+          <div class="r">谁在学、谁监护、谁定义内容权威</div>
+        </div>
+        <div class="layer-row">
+          <div class="l">内容层</div>
+          <div class="r">学什么、用什么练、用什么教（相对稳定，权威可审）</div>
+        </div>
+        <div class="layer-row">
+          <div class="l">过程层</div>
+          <div class="r">这一次如何学：情境、活动、作答、掌握变化（动态，属学生）</div>
+        </div>
+        <div class="layer-row">
+          <div class="l">呈现层</div>
+          <div class="r">不同角色看到什么视图（学生的鼓励与任务，家长的进度与掌握）</div>
+        </div>
+      </div>
+
+      <h3>1.3 概念定义（充分论述）</h3>
+
+      <h4>角色层</h4>
+      <div class="def-grid">
+        <div class="def">
+          <div class="name">学生</div>
+          <div class="one">学习的主体；一切进度与掌握结论的归属人。</div>
+          <p class="why">没有「学生」这一锚点，内容再丰富也只是教材库，不是学习产品。多孩家庭可以有多个学生实体，但每个实体的过程数据相互隔离。</p>
+        </div>
+        <div class="def">
+          <div class="name">学生画像</div>
+          <div class="one">关于「这个人」的稳定信息：年级、称呼、偏好、沟通习惯等。</div>
+          <p class="why">画像服务「如何对待这个人」，不服务「某知识点会不会」。二者必须分开，否则容易用印象代替证据。</p>
+        </div>
+        <div class="def">
+          <div class="name">家长（监护者）</div>
+          <div class="one">对学习结果负监护责任的人：看见、纠偏、必要时补充内容。</div>
+          <p class="why">家庭场景里，家长不是「第二个学生」，而是权威与信任的出口。系统自动结论必须可被家长理解与订正。</p>
+        </div>
+        <div class="def">
+          <div class="name">老师 / 教研</div>
+          <div class="one">内容权威的定义者或审核者：知识点是否成立、是否贴合教材与年级。</div>
+          <p class="why">在纯家庭试用中，家长可暂代教研角色；模型上仍应保留「内容权威 ≠ 学习主体」。</p>
+        </div>
+      </div>
+
+      <h4>内容层：学什么、怎么教、怎么验</h4>
+      <div class="def-grid">
+        <div class="def">
+          <div class="name">单元</div>
+          <div class="one">教材中的教学段落（册、单元、主题），是「对齐当前学什么」的常用粒度。</div>
+          <p class="why">孩子说「学第一单元」时，对齐的是单元，而不是立刻落到某一个细知识点。单元包含若干知识点，也可关联课堂活动。</p>
+        </div>
+        <div class="def">
+          <div class="name">知识点</div>
+          <div class="one">可单独讨论「会或不会」的最小课程原子；掌握判断的坐标系。</div>
+          <p class="why">没有知识点，就只能说「数学不太好」，无法说「两步运算的乘加还不稳」。知识点应由人权威确认，不宜由对话随口生成并当作事实。</p>
+        </div>
+        <div class="def">
+          <div class="name">习题</div>
+          <div class="one">用于检验「会不会」的题目；理想情况下可判分或可按约定规则评判。</div>
+          <p class="why">习题回答的是验证问题，不回答教学内容结构问题。有知识点无习题，仍可讲解；有习题无知识点，则练习无法沉淀为掌握结论。</p>
+        </div>
+        <div class="def">
+          <div class="name">教案 / 讲解材料</div>
+          <div class="one">回答「怎么教」：目标、例示、步骤、关键提醒；可以有深浅两档。</div>
+          <p class="why"><strong>讲解点（浅）</strong>：够支撑一次分步讲解的要点。<br /><strong>详细教案（深）</strong>：含目标、例题序列、活动设计、易错预设等，供更高质量教学。<br />二者都挂在知识点（或单元）上，但深度不同；缺详细教案时，仍可用讲解点教学，而不应假装「已经有完整教案体系」。</p>
+        </div>
+        <div class="def">
+          <div class="name">课堂活动</div>
+          <div class="one">教材中依赖听、说、演、做，且不宜纳入自动刷题闭环的活动。</div>
+          <p class="why">强行改成「伪选择题」会伤害教学真实性。它们可以出现在进度（做过/引导过），但默认不进入「自动判分→掌握」主链。</p>
+        </div>
+      </div>
+
+      <div class="principle">
+        <strong>内容三件套</strong>：知识点定义「学什么」，教案定义「怎么教」，习题定义「会不会」。三者分开演进——缺一不阻碍另外两者存在，但完整伴学需要三者逐渐齐备。
+      </div>
+
+      <h4>过程层：这一次学习如何留下痕迹</h4>
+      <div class="def-grid">
+        <div class="def">
+          <div class="name">学习情境</div>
+          <div class="one">当前对话对齐的学科 / 单元（有时具体到知识点）。</div>
+          <p class="why">情境保证「下一句讲解或出题」不跑题。情境切换是过程事件，<strong>本身不等于掌握</strong>。</p>
+        </div>
+        <div class="def">
+          <div class="name">学习活动</div>
+          <div class="one">一次可记录的学习事件：听讲、练习、订正讲解、拍照讨论等。</div>
+          <p class="why">没有活动账本，「今天学了什么」只能靠聊天回忆，家长与学生无法共享同一事实。活动记录进度，不自动等于掌握。</p>
+        </div>
+        <div class="def">
+          <div class="name">作答记录</div>
+          <div class="one">一次可追溯的答题事实：题是什么、答了什么、对错如何判定。</div>
+          <p class="why">掌握判断若要可信，必须能回到作答。口头说「你答对了」却不留记录，不是学习过程的完整闭环。</p>
+        </div>
+        <div class="def">
+          <div class="name">掌握判断</div>
+          <div class="one">针对某知识点的结论状态（如未练、薄弱、稳定掌握等），由作答累积，并可被家长订正。</div>
+          <p class="why">这是「学情」一词最容易被误用的部分。它必须可解释、可纠正，否则监护者无法信任。</p>
+        </div>
+      </div>
+
+      <h3>1.4 「学情」一词的拆分（建模关键）</h3>
+      <p>口语中的「学情」过于宽泛。建议在产品与教研语言中固定为两套可见对象：</p>
+      <table>
+        <thead>
+          <tr>
+            <th>用语</th>
+            <th>含义</th>
+            <th>主要依据</th>
+            <th>能否直接说「学会了」</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>学习进度</strong></td>
+            <td>一段时间内听了什么、练了什么、覆盖到哪些单元/知识点</td>
+            <td>学习活动 + 作答次数等</td>
+            <td>不能。进度描述「做过」，不描述「会了」</td>
+          </tr>
+          <tr>
+            <td><strong>掌握学情</strong></td>
+            <td>某知识点当前的掌握判断，及支撑它的证据</td>
+            <td>作答记录，及家长订正</td>
+            <td>可以，但必须带证据或人工确认</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>另有一类<strong>对人的了解</strong>（称呼、情绪、习惯），属于陪伴质量，不属于掌握学情。三者并存，互不替代。</p>
+
+      <h3>1.5 对象如何关联</h3>
+      <ul>
+        <li>一个<strong>单元</strong>包含多个<strong>知识点</strong>，可关联若干<strong>课堂活动</strong>。</li>
+        <li>一个<strong>知识点</strong>可挂接<strong>讲解材料 / 教案</strong>，并可挂接多道<strong>习题</strong>。</li>
+        <li><strong>学生</strong>在某一时刻处于某个<strong>学习情境</strong>（通常指向单元）。</li>
+        <li>学生的一次听讲或练习，产生<strong>学习活动</strong>；若包含答题，再产生<strong>作答记录</strong>。</li>
+        <li><strong>掌握判断</strong>挂在「学生 × 知识点」上，由作答沉淀，可被家长修改。</li>
+      </ul>
+      <div class="principle">
+        <strong>关系纪律</strong>：内容层对象描述世界「应该学什么」；过程层对象描述「这个学生实际发生了什么」。Agent 可以说话，但不能用一句话同时冒充两种对象。
+      </div>
+
+      <h3>1.6 正确的业务过程（目标态）</h3>
+      <p>下列过程是「教育应该如何发生」的描述，不依赖任何具体软件形态。</p>
+
+      <div class="flow-block">
+        <div class="title">过程 A · 内容建设（教研 / 家长代行）</div>
+        <ol>
+          <li>从教材或资料识别单元与知识点；</li>
+          <li>为知识点准备讲解材料（由浅到深）；</li>
+          <li>为需要检验的知识点准备习题；</li>
+          <li>将不宜自动检验的部分标为课堂活动；</li>
+          <li>经权威确认后，成为可教、可练的内容基线。</li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="title">过程 B · 学新知（学生）</div>
+        <ol>
+          <li>明确学习情境（学哪一单元 / 主题）；</li>
+          <li>依据讲解材料进行教学（分步、举例、追问）；</li>
+          <li>记下一次「听讲」类学习活动；</li>
+          <li>不因「听过」自动写入「已掌握」。</li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="title">过程 C · 练习与检验（学生）</div>
+        <ol>
+          <li>在当前情境下选取合适习题；</li>
+          <li>学生作答；</li>
+          <li>形成作答记录（对错与依据）；</li>
+          <li>更新对应知识点的掌握判断；</li>
+          <li>记下一次「练习」类学习活动；</li>
+          <li>若无可用习题：诚实说明，并导向替代路径（换内容、真实作业、人工补题），而不是用无法追溯的口头考试代替。</li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="title">过程 D · 真实作业进入过程（学生 / 家长）</div>
+        <ol>
+          <li>呈现一道真实题目（如拍照）；</li>
+          <li>分支一：只要讲解 → 教学 + 活动记录；</li>
+          <li>分支二：要记入掌握 → 尽量挂到知识点；不确定则进入「待确认」，由家长裁定；</li>
+          <li>确认后的结果与过程 C 一样，进入作答与掌握。</li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="title">过程 E · 监护与治理（家长）</div>
+        <ol>
+          <li>查看学习进度（活动与覆盖）；</li>
+          <li>查看掌握学情（结论 + 证据）；</li>
+          <li>订正误判，并保留「谁改了什么」；</li>
+          <li>在需要时补充知识点、习题或讲解材料（回到过程 A）。</li>
+        </ol>
+      </div>
+
+      <h3>1.7 建模小结</h3>
+      <p>建议用一句话记住整个模型：</p>
+      <div class="principle">
+        <strong>学生是主体；知识点、习题、教案是内容；学习活动是足迹；作答与掌握判断是证据；家长是监护与纠偏；老师/教研是内容权威。</strong>
+      </div>
+    </section>
+
+    <!-- ========== 2 ========== -->
+    <section id="p2">
+      <h2>第二部分 · 从模型到教育 Agent 功能</h2>
+      <p>Agent 的价值，是让第一部分中的过程 <strong>B–E</strong> 在对话中自然发生，且不破坏对象纪律。下面的功能是从模型<strong>抽象</strong>出来的能力清单，而不是某一版软件菜单的说明书。</p>
+
+      <h3>2.1 Agent 的角色定义</h3>
+      <p>教育 Agent = <strong>学习过程的对话式调度者 + 适龄讲解者</strong>。</p>
+      <div class="two-col">
+        <div class="box yes">
+          <h4>它是</h4>
+          <ul>
+            <li>意图理解者：判断此刻要学、要练、要问、要看作业还是只要陪伴</li>
+            <li>过程执行者：推动情境对齐、取讲解、取题、记活动、记作答</li>
+            <li>表达者：把结果变成孩子听得懂、愿意继续的话</li>
+            <li>边界守护者：超纲、空内容、证据不足时诚实降级</li>
+          </ul>
+        </div>
+        <div class="box no">
+          <h4>它不是</h4>
+          <ul>
+            <li>内容权威本身（不能随口定义「官方知识点」）</li>
+            <li>掌握结论的随意宣布者（无作答却说「你已掌握」）</li>
+            <li>家长职责的替代者（不能让监护者无法看见与纠正）</li>
+            <li>仅刷题机器或仅闲聊机器人</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>2.2 功能域总览</h3>
+      <p>由过程模型可自然得到六组功能。组与组之间有依赖，但职责不合并。</p>
+
+      <div class="agent-card">
+        <h4>F1 · 情境对齐</h4>
+        <p>对应过程 B/C 的入口：弄清「现在学的是哪一科、哪一单元、是否超年级」。</p>
+        <p class="cap">能力要点：识别学科/单元意图；确认歧义；拒绝或改写超纲请求；切换学习情境并告知孩子「我们现在学的是……」。</p>
+      </div>
+
+      <div class="agent-card">
+        <h4>F2 · 教学讲解</h4>
+        <p>对应过程 B：基于讲解材料 / 教案进行可中断、可追问的教学。</p>
+        <p class="cap">能力要点：按知识点取教学材料；分步讲、举例、检查理解；材料不足时承认局限；教学结束后形成「听讲」类学习活动。</p>
+      </div>
+
+      <div class="agent-card">
+        <h4>F3 · 练习与检验</h4>
+        <p>对应过程 C：完整的「出题—作答—评判—沉淀」闭环。</p>
+        <p class="cap">能力要点：按情境选题；呈现题目；接收作答；形成作答记录；更新掌握判断；同步「练习」活动。无题时的诚实降级与替代路径，属于本功能的一部分，而不是失败时的随意发挥。</p>
+      </div>
+
+      <div class="agent-card">
+        <h4>F4 · 真实任务接入</h4>
+        <p>对应过程 D：把作业照片、口头真实题等接入同一套对象，而不是另起炉灶。</p>
+        <p class="cap">能力要点：理解题目；按用户意图分流为「只讲解」或「记入掌握」；低把握时请求家长确认；确认后与 F3 使用同一套作答 / 掌握对象。</p>
+      </div>
+
+      <div class="agent-card">
+        <h4>F5 · 进度与掌握的陈述</h4>
+        <p>对应过程 E 在对话侧的投影：回答「今天学了什么」「哪里还不熟」。</p>
+        <p class="cap">能力要点：区分进度陈述与掌握陈述；掌握相关表述必须能指向证据；禁止用聊天总结冒充掌握结论。</p>
+      </div>
+
+      <div class="agent-card">
+        <h4>F6 · 陪伴与安全边界</h4>
+        <p>对应画像与监护底线：让过程可持续、可接受。</p>
+        <p class="cap">能力要点：适龄语气与称呼；情绪承接；拒绝代写等不当请求；在学习主线与闲聊之间保持可拉回。</p>
+      </div>
+
+      <h3>2.3 功能与过程、对象的映射</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Agent 功能</th>
+            <th>服务的过程</th>
+            <th>主要读写的对象</th>
+            <th>对家长的意义</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>F1 情境对齐</td>
+            <td>B / C 入口</td>
+            <td>学习情境、单元</td>
+            <td>知道孩子「在学哪一块」</td>
+          </tr>
+          <tr>
+            <td>F2 教学讲解</td>
+            <td>B</td>
+            <td>知识点、教案、学习活动</td>
+            <td>进度中出现「听讲」</td>
+          </tr>
+          <tr>
+            <td>F3 练习与检验</td>
+            <td>C</td>
+            <td>习题、作答、掌握判断、学习活动</td>
+            <td>掌握学情可更新</td>
+          </tr>
+          <tr>
+            <td>F4 真实任务接入</td>
+            <td>D</td>
+            <td>同上 + 待确认项</td>
+            <td>作业进入同一套档案</td>
+          </tr>
+          <tr>
+            <td>F5 进度与掌握陈述</td>
+            <td>E（对话侧）</td>
+            <td>活动、作答、掌握判断</td>
+            <td>亲子看到同一事实</td>
+          </tr>
+          <tr>
+            <td>F6 陪伴与安全</td>
+            <td>全程</td>
+            <td>画像（读为主）</td>
+            <td>可持续、可放心</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>家长侧的「查看—订正—补内容」可以是独立界面能力，不必须全部由对话 Agent 完成；但 Agent 不得产出与家长侧对象不一致的「影子结论」。</p>
+
+      <h3>2.4 意图到功能的编排纪律</h3>
+      <p>对话是入口，不是可以省略对象写入的借口。建议用下表约束编排（讨论用）：</p>
+      <table>
+        <thead>
+          <tr>
+            <th>学生意图（例子）</th>
+            <th>应激活的功能</th>
+            <th>必须留下的对象</th>
+            <th>明确禁止</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>想学某单元</td>
+            <td>F1 → F2</td>
+            <td>情境 + 听讲活动</td>
+            <td>把「讲过」写成「已掌握」</td>
+          </tr>
+          <tr>
+            <td>出题考考我</td>
+            <td>F1（若需）→ F3</td>
+            <td>作答 + 掌握更新 + 练习活动</td>
+            <td>口头出题判分却不留作答</td>
+          </tr>
+          <tr>
+            <td>这题我不会</td>
+            <td>F2（+ 必要时 F5）</td>
+            <td>讲解；若涉及「你常错」须有掌握证据</td>
+            <td>无证据的标签式批评</td>
+          </tr>
+          <tr>
+            <td>看看这张作业</td>
+            <td>F4（再进 F2 或 F3）</td>
+            <td>按意图：活动 和/或 作答/待确认</td>
+            <td>不经确认就把不确定结果写成掌握</td>
+          </tr>
+          <tr>
+            <td>我今天学了什么</td>
+            <td>F5</td>
+            <td>只读活动与作答</td>
+            <td>用当场编造的总结代替账本</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.5 与「内容建设」的关系</h3>
+      <p>过程 A（内容建设）通常不是学生对话 Agent 的主责，但 Agent 必须<strong>感知内容是否就绪</strong>：</p>
+      <ul>
+        <li>有知识点、有讲解 → 可教；</li>
+        <li>有习题 → 可检验；</li>
+        <li>缺一则降级说明，并指向家长/教研补齐——这本身是 F3/F2 的合格行为，不是产品失败。</li>
+      </ul>
+      <p>因此：教育 Agent 功能设计与内容运营是两条腿；模型上分开，产品节奏上可以并行。</p>
+
+      <h3>2.6 功能完备性的判据</h3>
+      <p>判断「Agent 功能是否设计合理」，建议用过程能否跑通来检验，而不是用功能点数量：</p>
+      <ol>
+        <li>学生能否在对话中完成「学新知」并留下进度？</li>
+        <li>学生能否完成「练习」并留下掌握证据？</li>
+        <li>无内容时，系统是否诚实且仍给出下一步？</li>
+        <li>家长能否看见与对话一致的进度与掌握，并纠正错误结论？</li>
+        <li>真实作业能否进入同一套对象，而不是旁路消失？</li>
+      </ol>
+      <p>五条皆「是」，则六组功能在原则上闭环；任一长期为「否」，应回到第一部分改模型或补功能，而不是只改话术。</p>
+    </section>
+
+    <!-- ========== 3 ========== -->
+    <section id="p3">
+      <h2>第三部分 · 请一起拍板的问题</h2>
+      <p>下列问题直接影响模型是否成立，建议在进入详细产品方案前形成书面共识。</p>
+      <ol class="q-list">
+        <li>
+          是否采纳「学习进度」与「掌握学情」二分？
+          <span class="opt">若否，请给出替代的家长可见结构，并说明如何避免「听过 = 学会」的混淆。</span>
+        </li>
+        <li>
+          「学习活动」是否作为一等对象写入模型？
+          <span class="opt">若否，家长如何可靠回答「今天学了什么」？</span>
+        </li>
+        <li>
+          无题库时，是否允许 Agent 自编题并影响掌握判断？
+          <span class="opt">建议选项：禁止影响掌握 / 只记活动不记掌握 / 作为「真实题」记入但强标记来源。</span>
+        </li>
+        <li>
+          详细教案与讲解点：同一材料加深，还是两套对象？
+          <span class="opt">影响教研负担与「怎么教」的质量上限。</span>
+        </li>
+        <li>
+          知识点变更是否一律需人审？
+          <span class="opt">影响内容权威与家庭自助扩展速度。</span>
+        </li>
+        <li>
+          教育 Agent 的主定位：更偏「过程调度 + 讲解」还是更偏「高强度替代家教」？
+          <span class="opt">二者都需要 F2，但内容深度与责任边界不同。</span>
+        </li>
+        <li>
+          学生过程数据的默认主权：是否以家庭本地为权威，内容包可外部分发？
+          <span class="opt">属产品伦理与部署假设，宜与模型一并声明。</span>
+        </li>
+      </ol>
+
+      <div class="principle" style="margin-top:28px">
+        <strong>收束</strong>：先承认学习是「内容—过程—证据—监护」的结构，再让 Agent 成为结构中的调度者与讲解者。功能清单 F1–F6 都从这一结构长出来；讨论功能时，请随时指回对应的对象与过程。
+      </div>
+    </section>
+
+    <footer>
+      <p>教育过程建模与教育 Agent 功能 · 研讨稿（第一性原理）</p>
+      <p>不描述实现状态；实现与差距另文管理</p>
+    </footer>
+  </div>
+</body>
+</html>
