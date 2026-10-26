@@ -87,11 +87,31 @@ def run_teach_preflight(student_id: str, message: str) -> str:
         grade_level = get_kp_catalog_service().resolve_grade_level(ctx.curriculum.grade)
 
     subject, unit_num = parse_teach_target(message)
-    lookup = lookup_units(
-        grade_level=int(grade_level),
-        subject=subject,
-        unit_num=unit_num,
-    )
+    # 仅说「学英语/数学」未指单元：勿默认试点 u01；同科则续当前 Focus，否则追问第几单元
+    if subject and unit_num is None:
+        current_subject = (ctx.curriculum.subject or "").strip()
+        current_unit = (ctx.curriculum.unit_id or "").strip()
+        if current_subject == subject and current_unit:
+            lookup = lookup_units(
+                grade_level=int(grade_level),
+                unit_id=current_unit,
+            )
+        else:
+            return (
+                "## 本轮讲新课预检（系统）\n"
+                f"- 孩子想学「{subject}」，但未说明第几单元。\n"
+                f"- **禁止**默认跳到该科第一单元/试点单元开讲。\n"
+                "- 请先用口语追问：「想学第几单元？」（可举例该科已有单元名）；确认后再 "
+                "`learning_catalog_lookup` + `learning_focus_set` + `explain_kp`。\n"
+                "- 若孩子说「前面学过了 / 要学下一单元」：问清目标单元号，或按 catalog 切到下一单元。\n"
+                "- 禁止向孩子复述本段系统说明。"
+            )
+    else:
+        lookup = lookup_units(
+            grade_level=int(grade_level),
+            subject=subject,
+            unit_num=unit_num,
+        )
     if not lookup.success:
         err = lookup.error or "catalog lookup failed"
         if "grade boundary" in err.lower() or "cannot access unit grade" in err.lower():
@@ -104,7 +124,7 @@ def run_teach_preflight(student_id: str, message: str) -> str:
             return (
                 "## 本轮讲新课预检（系统）\n"
                 f"- catalog 未能唯一匹配（{err}）。\n"
-                "- 请先追问「数学还是语文的第几单元？」再讲；勿编造 unit。\n"
+                "- 请先追问「数学还是语文/英语的第几单元？」再讲；勿编造 unit；**禁止**默认第一单元。\n"
                 "- 禁止向孩子复述本段系统说明。"
             )
         return ""
@@ -114,7 +134,7 @@ def run_teach_preflight(student_id: str, message: str) -> str:
         return (
             "## 本轮讲新课预检（系统）\n"
             f"- 匹配到多个单元：{names}\n"
-            "- 请先让孩子确认具体单元，再 learning_focus_set + explain_kp。\n"
+            "- 请先让孩子确认具体单元，再 learning_focus_set + explain_kp；**禁止**默认第一单元。\n"
             "- 禁止向孩子复述本段系统说明。"
         )
 

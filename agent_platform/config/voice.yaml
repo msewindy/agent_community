@@ -31,7 +31,9 @@ barge_in:
 
 hermes:
   provider: deepseek
-  model: deepseek-chat
+  # DeepSeek 当前仅接受 deepseek-v4-flash / deepseek-v4-pro（deepseek-chat 已下线 → 400）
+  model: deepseek-v4-flash
+  timeout_s: 180
 
 perception:
   # M4 D4：语音轮次前按需视觉（US-2）

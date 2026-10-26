@@ -37,3 +37,30 @@ def test_strip_leading_framework_paragraph() -> None:
 
 def test_empty_after_only_framework() -> None:
     assert sanitize_student_reply("当前学科和单元已经对齐了，不用切换啦！") == ""
+
+
+def test_strip_hermes_self_improvement_review_line() -> None:
+    raw = (
+        "好呀盈熙！那我们开始学英语第二单元。\n\n"
+        "💾 Self-improvement review: User profile updated"
+    )
+    clean = sanitize_student_reply(raw)
+    assert "Self-improvement" not in clean
+    assert "User profile updated" not in clean
+    assert "盈熙" in clean
+    assert "第二单元" in clean
+
+
+def test_empty_after_only_self_improvement_review() -> None:
+    assert (
+        sanitize_student_reply("💾 Self-improvement review: User profile updated")
+        == ""
+    )
+
+
+def test_strip_self_improvement_without_emoji() -> None:
+    raw = "Self-improvement review: Memory updated · Skill patched\n\n我们继续学吧。"
+    clean = sanitize_student_reply(raw)
+    assert "Self-improvement" not in clean
+    assert "Memory updated" not in clean
+    assert "我们继续学吧" in clean

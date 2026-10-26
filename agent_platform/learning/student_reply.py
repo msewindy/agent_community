@@ -51,6 +51,12 @@ _FRAMEWORK_LINE_RE = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 
+# Hermes CLI/TUI 故意打到 stdout 的运维摘要（后台 memory/profile/skill 写入）
+_HERMES_STATUS_LINE_RE = re.compile(
+    r"^[\s>*•\-]*(?:💾\s*)?Self-improvement review\s*:.*$",
+    re.MULTILINE | re.IGNORECASE,
+)
+
 _HRULE_SPLIT_RE = re.compile(r"\n-{3,}\s*\n+")
 
 
@@ -59,12 +65,20 @@ def _is_framework_block(block: str) -> bool:
     if not s:
         return False
     lower = s.lower()
+    if "self-improvement review" in lower:
+        return True
     return any(sig.lower() in lower for sig in _FRAMEWORK_BLOCK_SIGNALS)
 
 
 def sanitize_student_reply(text: str) -> str:
     """移除助手回复中的框架/工具说明，只保留面向孩子的对话正文。"""
     out = (text or "").strip()
+    if not out:
+        return out
+
+    # 先剥 Hermes 后台自改进摘要（可出现在正文任意位置）
+    out = _HERMES_STATUS_LINE_RE.sub("", out)
+    out = re.sub(r"\n{3,}", "\n\n", out).strip()
     if not out:
         return out
 

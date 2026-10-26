@@ -55,7 +55,7 @@ photo_triage:
   tau_high: 0.85   # ≥ 高置信 → 自动入学情
   tau_low: 0.60    # [tau_low, tau_high) → 待确认；< tau_low 或无匹配 → 待归类收件箱
   llm:
-    model: deepseek-chat
+    model: deepseek-v4-flash
     base_url_env: DEEPSEEK_BASE_URL
     api_key_env: DEEPSEEK_API_KEY
     timeout_s: 60

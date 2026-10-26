@@ -48,6 +48,30 @@ def test_teach_preflight_aligns_chinese_u1(focus_env) -> None:
     assert "勿向" in block
 
 
+def test_teach_preflight_subject_only_asks_unit_not_pilot(focus_env) -> None:
+    """只说「学英语」且当前不是英语时，应追问单元，禁止默认试点 u01。"""
+    sid, data, _ = focus_env
+    from agent_platform.learning.learning_focus import set_learning_focus
+
+    set_learning_focus(sid, "math-g3-u01", data_root=data)
+    block = run_teach_preflight(sid, "你好，我想学英语")
+    assert "讲新课预检" in block
+    assert "第几单元" in block
+    assert "禁止" in block and "第一单元" in block
+    assert "english-g3-u01" not in block
+
+
+def test_teach_preflight_subject_only_keeps_current_focus(focus_env) -> None:
+    """已在英语某单元时再说「学英语」，应续当前单元而非跳回 u01。"""
+    sid, data, _ = focus_env
+    from agent_platform.learning.learning_focus import set_learning_focus
+
+    set_learning_focus(sid, "english-g3-u03", data_root=data)
+    block = run_teach_preflight(sid, "我想学英语")
+    assert "讲新课预检" in block
+    assert "english-g3-u03" in block
+
+
 def test_grade_boundary_high_school() -> None:
     block = check_grade_boundary_message("讲讲高中物理", student_grade_level=3)
     assert block is not None

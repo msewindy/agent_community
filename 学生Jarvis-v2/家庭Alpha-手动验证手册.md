@@ -1,6 +1,6 @@
 # 家庭 Alpha · 手动验证手册
 
-> **配套文档**：[家庭Alpha-启动手册.md](./家庭Alpha-启动手册.md)  
+> **配套文档**：[家庭Alpha-部署与启动手册.md](./家庭Alpha-部署与启动手册.md)  
 > **版本**：学生 Jarvis v2 · 家庭 Alpha · 三年级（P0 + P1 完成后）  
 > **默认学生**：`g2-stu-01`  
 > **默认单元**：数学 `math-g3-mixed-ops`（混合运算）  
@@ -368,7 +368,7 @@ $PY -m agent_platform.learning.cli_student attempt list g2-stu-01 --limit 5
 
 | 文件 | 用途 |
 |------|------|
-| [家庭Alpha-启动手册.md](./家庭Alpha-启动手册.md) | 日常启动与话术 |
-| [家庭Alpha-全新部署手册.md](./家庭Alpha-全新部署手册.md) | 新机安装 / WSL 重置 |
+| [家庭Alpha-部署与启动手册.md](./家庭Alpha-部署与启动手册.md) | 从零部署 + 日常启停 / 话术 |
+| [家庭Alpha-启动手册.md](./家庭Alpha-启动手册.md) / [全新部署手册](./家庭Alpha-全新部署手册.md) | 旧名跳转（已合并） |
 | `docs/content/数学-三年级-完整样例.kp.md` | 入库验证样例 |
 | `docs/learning/p1/kp-document-format.md` | `.kp.md` 格式规范 |

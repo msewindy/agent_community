@@ -35,6 +35,96 @@
       "default_error_code": "EN_READING_ERROR"
     },
     {
+      "question_id": "q-en3-u01-004",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-vocab",
+      "stem": "写出英文单词（小写）：「新的」",
+      "answer_type": "exact",
+      "expected_answer": "new",
+      "explanation": "单元核心词 new。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-005",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-vocab",
+      "stem": "写出英文单词（小写）：「学校」",
+      "answer_type": "exact",
+      "expected_answer": "school",
+      "explanation": "单元核心词 school。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-006",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-vocab",
+      "stem": "写出英文单词（小写）：「朋友」",
+      "answer_type": "exact",
+      "expected_answer": "friend",
+      "explanation": "单元核心词 friend。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-007",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-vocab",
+      "stem": "写出英文单词（小写）：「老师」",
+      "answer_type": "exact",
+      "expected_answer": "teacher",
+      "explanation": "单元核心词 teacher。",
+      "default_error_code": "SPELLING_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-008",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-grammar",
+      "stem": "选词填空（小写完整句）：I ___ a student.（填 am / is / are）写成完整句",
+      "answer_type": "exact",
+      "expected_answer": "i am a student",
+      "explanation": "I 后用 am。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-009",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-grammar",
+      "stem": "选词填空（小写完整句）：She ___ my classmate.（填 am / is / are）写成完整句",
+      "answer_type": "exact",
+      "expected_answer": "she is my classmate",
+      "explanation": "She 后用 is。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-010",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-sentences",
+      "stem": "句型默写（小写）：写出「我想交新朋友」对应课本句 I want to make new friends",
+      "answer_type": "exact",
+      "expected_answer": "i want to make new friends",
+      "explanation": "Find the rule 核心句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-011",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-sentences",
+      "stem": "句型默写（小写）：写出「我想说好英语」对应课本句 I want to speak English well",
+      "answer_type": "exact",
+      "expected_answer": "i want to speak english well",
+      "explanation": "Find the rule 核心句型。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
+      "question_id": "q-en3-u01-012",
+      "unit_id": "english-g3-u01",
+      "knowledge_point_id": "kp-en-g3-u01-grammar",
+      "stem": "判断（填 true 或 false，小写）：句子「I is a student.」语法正确",
+      "answer_type": "exact",
+      "expected_answer": "false",
+      "explanation": "I 后应是 am，不是 is。",
+      "default_error_code": "GRAMMAR_ERROR"
+    },
+    {
       "question_id": "q-en3-u02-001",
       "unit_id": "english-g3-u02",
       "knowledge_point_id": "kp-en-g3-u02-grammar",
@@ -58,40 +148,40 @@
       "question_id": "q-en3-u03-001",
       "unit_id": "english-g3-u03",
       "knowledge_point_id": "kp-en-g3-u03-reading",
-      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s this?",
+      "stem": "句型练习（小写完整句）：问 What’s this？提示：carrot plant（胡萝卜苗）。请用 It’s a ... 回答",
       "answer_type": "exact",
-      "expected_answer": "it’s a carrot plant",
-      "explanation": "课本 Find the rule：What’s this? → It’s a carrot plant",
+      "expected_answer": "it's a carrot plant",
+      "explanation": "不依赖配图：提示已给出 carrot plant；句型 It’s a ...",
       "default_error_code": "EN_READING_ERROR"
     },
     {
       "question_id": "q-en3-u03-002",
       "unit_id": "english-g3-u03",
       "knowledge_point_id": "kp-en-g3-u03-sentences",
-      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s that?",
+      "stem": "句型练习（小写完整句）：问 What’s that？提示：sunflower（向日葵）。请用 It’s a ... 回答",
       "answer_type": "exact",
-      "expected_answer": "it’s a sunflower",
-      "explanation": "课本 Find the rule：What’s that? → It’s a sunflower",
+      "expected_answer": "it's a sunflower",
+      "explanation": "不依赖配图：提示已给出 sunflower；句型 It’s a ...",
       "default_error_code": "GRAMMAR_ERROR"
     },
     {
       "question_id": "q-en3-u03-003",
       "unit_id": "english-g3-u03",
       "knowledge_point_id": "kp-en-g3-u03-sentences",
-      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s this?",
+      "stem": "句型练习（小写完整句）：问 What’s this？提示：tomato（番茄）。请用 It’s a ... 回答",
       "answer_type": "exact",
-      "expected_answer": "it’s a tomato",
-      "explanation": "课本 Find the rule：What’s this? → It’s a tomato",
+      "expected_answer": "it's a tomato",
+      "explanation": "不依赖配图：提示已给出 tomato；句型 It’s a ...",
       "default_error_code": "GRAMMAR_ERROR"
     },
     {
       "question_id": "q-en3-u03-004",
       "unit_id": "english-g3-u03",
       "knowledge_point_id": "kp-en-g3-u03-sentences",
-      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s that?",
+      "stem": "句型练习（小写完整句）：问 What’s that？提示：orange tree（橙子树）。请用 It’s an ... 回答",
       "answer_type": "exact",
-      "expected_answer": "it’s an orange tree",
-      "explanation": "课本 Find the rule：What’s that? → It’s an orange tree",
+      "expected_answer": "it's an orange tree",
+      "explanation": "不依赖配图：提示已给出 orange tree；句型 It’s an ...",
       "default_error_code": "GRAMMAR_ERROR"
     },
     {
@@ -120,8 +210,8 @@
       "knowledge_point_id": "kp-en-g3-u04-grammar",
       "stem": "句型练习：根据问句用英文完整作答（小写）。问：Where is rain from?",
       "answer_type": "exact",
-      "expected_answer": "\u0007it’s from the water vapour in clouds",
-      "explanation": "课本 Find the rule：Where is rain from? → \u0007It’s from the water vapour in clouds",
+      "expected_answer": "it’s from the water vapour in clouds",
+      "explanation": "课本 Find the rule：Where is rain from? → It’s from the water vapour in clouds",
       "default_error_code": "GRAMMAR_ERROR"
     },
     {
@@ -178,10 +268,10 @@
       "question_id": "q-en3-u07-003",
       "unit_id": "english-g3-u07",
       "knowledge_point_id": "kp-en-g3-u07-grammar",
-      "stem": "句型练习：根据问句用英文完整作答（小写）。问：\u0007What’s your dream job?",
+      "stem": "句型练习：根据问句用英文完整作答（小写）。问：What’s your dream job?",
       "answer_type": "exact",
-      "expected_answer": "\u0007my dream job is a chef",
-      "explanation": "课本 Find the rule：\u0007What’s your dream job? → \u0007My dream job is a chef",
+      "expected_answer": "my dream job is a chef",
+      "explanation": "课本 Find the rule：What’s your dream job? → My dream job is a chef",
       "default_error_code": "GRAMMAR_ERROR"
     },
     {

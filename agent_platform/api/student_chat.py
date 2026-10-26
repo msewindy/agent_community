@@ -305,8 +305,14 @@ def create_app(
 
     @app.post("/api/chat/stream")
     def chat_stream(body: ChatIn) -> StreamingResponse:
-        """SSE：轮询 hermes 输出文件，逐段推送回复文本。"""
+        """SSE：轮询 hermes 输出文件，逐段推送回复文本。
+
+        Hermes 在工具轮次期间可能数十秒无 stdout；期间发 SSE 注释心跳，
+        避免浏览器/中间层把「长时间无字节」的连接当成断网掐掉。
+        """
         import json
+        import queue
+        import threading
 
         sid = _default_student_id()
         try:
@@ -321,37 +327,59 @@ def create_app(
 
         def event_gen():
             accumulated: list[str] = []
-            try:
-                for ev in _bridge.stream_ask(
-                    body.message,
-                    session_id=body.session_id,
-                    env_extra=env_extra,
-                ):
-                    if ev.text_delta:
-                        accumulated.append(ev.text_delta)
-                        payload = {"delta": ev.text_delta}
-                        yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-                    if ev.done:
-                        full = "".join(accumulated)
-                        payload = {
-                            "done": True,
-                            "session_id": ev.session_id,
-                            "elapsed_ms": ev.elapsed_ms,
-                            "error": ev.error,
-                            "reply": sanitize_student_reply(full) if full else "",
-                        }
-                        yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-            except HermesCancelledError:
-                payload = {"done": True, "error": "cancelled"}
-                yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-            except Exception as exc:  # noqa: BLE001
-                payload = {"done": True, "error": str(exc)}
-                yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+            q: queue.Queue = queue.Queue()
+
+            def _producer() -> None:
+                try:
+                    for ev in _bridge.stream_ask(
+                        body.message,
+                        session_id=body.session_id,
+                        env_extra=env_extra,
+                    ):
+                        q.put(("ev", ev))
+                except HermesCancelledError:
+                    q.put(("err", "cancelled"))
+                except Exception as exc:  # noqa: BLE001
+                    q.put(("err", str(exc)))
+                finally:
+                    q.put(("end", None))
+
+            threading.Thread(target=_producer, name="chat-stream-hermes", daemon=True).start()
+            while True:
+                try:
+                    kind, payload = q.get(timeout=5.0)
+                except queue.Empty:
+                    # SSE comment — 客户端忽略，仅保活
+                    yield ": keepalive\n\n"
+                    continue
+                if kind == "end":
+                    break
+                if kind == "err":
+                    yield f"data: {json.dumps({'done': True, 'error': payload}, ensure_ascii=False)}\n\n"
+                    break
+                ev = payload
+                if ev.text_delta:
+                    accumulated.append(ev.text_delta)
+                    yield f"data: {json.dumps({'delta': ev.text_delta}, ensure_ascii=False)}\n\n"
+                if ev.done:
+                    full = "".join(accumulated)
+                    done_payload = {
+                        "done": True,
+                        "session_id": ev.session_id,
+                        "elapsed_ms": ev.elapsed_ms,
+                        "error": ev.error,
+                        "reply": sanitize_student_reply(full) if full else "",
+                    }
+                    yield f"data: {json.dumps(done_payload, ensure_ascii=False)}\n\n"
 
         return StreamingResponse(
             event_gen(),
             media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
         )
 
     @app.post("/api/chat/abort")

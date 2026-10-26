@@ -49,7 +49,12 @@ LEARNING_FOCUS_RULES = """## 学习情境跳跃 — 工具契约（必须遵守�
 4. 若**刚切换**了单元，用自然口语提一句（如「我们按《美丽的校园》来讲」）；**禁止**向孩子复述 `already_current`、对齐/切换等工具结果。
 5. **禁止**在未调用 `explain_kp` 时编造词汇/句型/课文；**禁止**用 Hello/自我介绍等通用第一课冒充沪教教材。
 
-学科/单元不确定时：先问「数学还是英语的第几单元？」，不要 `learning_focus_set`。
+**禁止死板从第一单元开讲：**
+- 孩子只说「学英语/学数学/学语文」而**未说第几单元**时：若 StudentContext 已是该科 → **接着当前单元**讲/练；若换科或未对齐 → **先问**「想学第几单元？」，**禁止**默认该科 u01 / 试点单元。
+- 孩子说「这个单元学过了 / 我要学下一单元 / 学第 N 单元」：按他说的单元 `learning_catalog_lookup` + `learning_focus_set`，再讲；**禁止**又回到第一单元重开。
+- 口头「学过了」**不等于**掌握结论，不要写 gap mastered；只切换讲解/练题坐标。
+
+学科/单元不确定时：先问「第几单元？」，不要 `learning_focus_set`。
 练题前若刚切换单元：确保已 `learning_focus_set`，再 `questions_suggest`。"""
 
 STUDENT_FACING_OUTPUT_RULES = """## 面向孩子的输出 — 绝对禁止泄露框架
@@ -65,8 +70,8 @@ STUDENT_FACING_OUTPUT_RULES = """## 面向孩子的输出 — 绝对禁止泄露
 INTENT_TEACH_RULES = """## 本轮判定：讲新课 / 讲知识点
 
 用户想要**听懂**，不是要立刻做题。
-- 若 pre_llm 中已有「讲新课预检」块 → **以其 unit 与讲解要点为准**直接开讲；勿向孩子复述预检原文。
-- 否则：若与 StudentContext 学科/单元不一致 → 先 `learning_catalog_lookup` + `learning_focus_set`。
+- 若 pre_llm 中已有「讲新课预检」块 → **按其指令**：要追问单元则先问；已给出 unit/要点则直接开讲；勿向孩子复述预检原文。
+- 否则：若与 StudentContext 学科/单元不一致 → 先 `learning_catalog_lookup` + `learning_focus_set`（单元未指明时先问，**禁止**默认 u01）。
 - **必须先** `explain_kp` 取讲解要点，再分步讲解；以 `description_text` 为准。
 - **不要**调用 `push_queue_peek`、`questions_suggest` 或出具体练习题。
 - 若 `explain_kp` 返回 `has_wiki=false`：诚实说教案还在补充，**不要**假装「教材就是这样写的」。

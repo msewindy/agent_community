@@ -2,7 +2,7 @@
 # Start family Alpha 8770 + 8771 in background (WSL/Linux).
 set -euo pipefail
 
-ROOT="${AGENT_COMMUNITY_ROOT:-/mnt/c/Users/Administrator/Desktop/agent_community}"
+ROOT="${AGENT_COMMUNITY_ROOT:-/mnt/d/project/agent_community}"
 PY="${HOME}/.hermes/hermes-agent/venv/bin/python"
 export AGENT_COMMUNITY_ROOT="${ROOT}"
 export PYTHONPATH="${ROOT}"

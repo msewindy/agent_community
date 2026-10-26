@@ -2,7 +2,7 @@
 # Install agent_community Hermes plugins in WSL (~/.hermes/plugins)
 set -euo pipefail
 
-ROOT="${AGENT_COMMUNITY_ROOT:-/mnt/c/Users/Administrator/Desktop/agent_community}"
+ROOT="${AGENT_COMMUNITY_ROOT:-/mnt/d/project/agent_community}"
 HERMES_HOME="${HERMES_HOME:-${HOME}/.hermes}"
 PLUGINS_DIR="${HERMES_HOME}/plugins"
 SRC_BASE="${ROOT}/agent_platform/integrations/hermes"

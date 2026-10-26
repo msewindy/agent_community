@@ -423,7 +423,15 @@
             if (bubble) bubble.textContent = `${assistantName}在想…`;
           });
           if (streamResult.session_id) sessionId = streamResult.session_id;
-          if (streamResult.error && !streamResult.reply) throw new Error(streamResult.error);
+          if (streamResult.error && streamResult.error !== 'cancelled' && !streamResult.reply) {
+            if (typingEl) { typingEl.remove(); typingEl = null; }
+            const tip = String(streamResult.error).includes('timed out')
+              ? `${assistantName}想得有点久，再问一次好吗？`
+              : `呜，${assistantName}出了点小问题，再试一次好吗？`;
+            addBubble(tip, 'jarvis');
+            console.warn('[chat] stream error', streamResult.error);
+            return;
+          }
           if (streamResult.reply) fullReply = streamResult.reply;
           if (fullReply) {
             if (typingEl) { typingEl.remove(); typingEl = null; }
@@ -462,7 +470,8 @@
         if (reqId !== chatRequestId) return;
         if (e.name === 'AbortError') return;
         if (typingEl) { typingEl.remove(); typingEl = null; }
-        addBubble('网络好像断了，等会儿再试试好吗？', 'jarvis');
+        console.warn('[chat] fetch failed', e);
+        addBubble('刚才连线晃了一下，再发一次好吗？', 'jarvis');
       } finally {
         clearInterval(waitTimer);
         if (reqId === chatRequestId) {

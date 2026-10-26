@@ -40,7 +40,7 @@ def llm_config(cfg: dict | None = None) -> dict:
     load_llm_env()
     key = os.environ.get("OPENAI_API_KEY") or os.environ.get("DEEPSEEK_API_KEY") or ""
     base = os.environ.get("OPENAI_API_BASE") or llm.get("base_url") or "https://api.deepseek.com/v1"
-    model = os.environ.get("OPENAI_MODEL") or llm.get("model") or "deepseek-chat"
+    model = os.environ.get("OPENAI_MODEL") or llm.get("model") or "deepseek-v4-flash"
     llm.setdefault("api_key", key)
     llm.setdefault("base_url", base.rstrip("/"))
     llm.setdefault("model", model)

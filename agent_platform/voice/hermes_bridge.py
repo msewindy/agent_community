@@ -326,11 +326,20 @@ def _find_session_id(*streams: str) -> str | None:
     return None
 
 
+_HERMES_STATUS_LINE_RE = re.compile(
+    r"^(?:💾\s*)?Self-improvement review\s*:",
+    re.IGNORECASE,
+)
+
+
 def _reply_body(stdout: str) -> str:
-    """STDOUT 在 -Q 模式下即回复正文；去掉可能混入的 session_id 行。"""
+    """STDOUT 在 -Q 模式下即回复正文；去掉 session_id / Hermes 运维状态行。"""
     lines = []
     for line in stdout.strip().splitlines():
-        if re.match(r"^session_id:\s*\S+", line.strip()):
+        stripped = line.strip()
+        if re.match(r"^session_id:\s*\S+", stripped):
+            continue
+        if _HERMES_STATUS_LINE_RE.match(stripped):
             continue
         lines.append(line.rstrip())
     return "\n".join(lines).strip()
